@@ -1,0 +1,360 @@
+/*
+ * Identity Governance REST APIs
+ * Welcome to the NetIQ Identity Governance API Documentation page. This is the API reference for the NetIQ Identity Governance REST API.  Below you will see the main sections of the API. Click each section in order to see the endpoints that are available in that category as well as information related to which Identity Governance roles have access. Global Administrators are not included in the accepted roles list for each API however they have access to all APIs. Those APIs that do not display a list of accepted roles are accessible for any role.  The NetIQ Identity Governance REST API uses the OAuth2 protocol for authentication. Therefore, in order to make any of these calls, you must obtain a token, and include that token in the Authentication header.  OSP = One SSO Provider   NAM = NetIQ Access Manager  **Note:** The various OAuth 2.0 endpoints described below can also be obtained from the OAuth/OpenID Connect provider 'metadata' found at the following location relative to the 'issuer URI':`[issuer-uri]/.well-known/openid-configuration`  Issuer URIs:  *   OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2 *   NAM: https://server/nidp/oauth/nam  See [Open ID Connect Discovery 1.0](\"https://openid.net/specs/openid-connect-discovery-1_0.html\") for more information.  Obtaining the Initial Access Token ==================================  ### OAuth 2.0 Resource Owner Password Credentials Grant Request  1.  Determine the OAuth 2.0 token endpoint for the authorization server:     1.  OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2/token     2.  NAM: https://server/nidp/oauth/nam/token 2.  Obtain the Identity Governance 'iac' client identifier and client secret.     1.  OSP         1.  The identifier is usually _iac_ but can be changed with the configutil or configupdate utilities.         2.  The client secret is the 'service password' specified during installation but can be changed with the configutil or configupdate utilities.     2.  NAM         1.  Open the Access Manager administrator console in a browser and navigate to the _OAuth & OpenID Connect_ tab on the _IDPCluster_ page. Select the _Client Applications_ heading.         2.  Click on the 'View' icon under the 'Actions' heading for the _Client Application_ named _iac_.         3.  Click on _Click to reveal_.         4.  Copy the _Client ID_ value and the _Client Secret_ value.         5.  Ensure that _Resource Owner Credentials_ appears in the _Grants Required_ list. If not, edit the client definition and check the _Resource Owner Credentials_ box, save the client definition, and update the IDP. 3.  Obtain the user identifier and password of a user with the required privilege for the desired API endpoint. 4.  Create an HTTP POST request with the following characteristics (see [RFC 6749 section 4.3.1](\"https://tools.ietf.org/html/rfc6749#section-4.3.1\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body: `grant_type=password&username=<user-id>&password=[user-password]&client_id=[iac-client-id]&client_secret=[iac-client-secret]`where the square-bracket-delimited names are replaced with the client and user values obtained in the steps above.  Also note the '**& amp;**' shown in this and other POST payload examples should actually be '**&**'. 5.  Issue the request to the OAuth 2.0 token endpoint. 6.  The JSON response will be similar to the following (see [RFC 6749 section 4.3.3](\"https://tools.ietf.org/html/rfc6749#section-4.3.3\")):`{ \"access_token\": \"eyJraWQiOiI0...\", \"token_type\": \"bearer\", \"expires_in\": 119, \"refresh_token\": \"eyJhbGciOiJ...\" }` 7.  When issuing a REST request to an Identity Governance endpoint pass the access token value using an HTTP _Bearer_ authorization header (see [RFC 6750 section 2.1](\"https://tools.ietf.org/html/rfc6750#section-2.1\")):`Authorization: Bearer [access-token]`  Refresh Tokens ==============  If the authorization server is configured to return an OAuth 2.0 refresh token in the JSON result of the Resource Owner Password Credential Grant request then the refresh token should be used to obtain additional access tokens after the currently-valid access token expires.  In addition, each refresh token issued on behalf of a user causes a 'revocation entry' to be stored in an attribute on the user's LDAP object. Obtaining many refresh tokens without revoking previously obtained, unexpired refresh tokens will eventually exceed the capacity of the attribute on the user's LDAP object and will result in errors.  Therefore, if a refresh token is obtained it must be revoked after it is no longer needed.  ### Access Token Request  1.  Create an HTTP POST request with the following characteristics (see [RFC 6749 section 6](\"https://tools.ietf.org/html/rfc6749#section-6\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body: `grant_type=refresh_token&refresh_token=<refresh-token>&client_id=<iac-clientid>&client_secret=[iac-client-secret]`where the square-bracket-delimited names are replaced with the obvious values. 2.  Issue the request to the OAuth 2.0 token endpoint. 3.  The JSON result will be similar to`{ \"access_token\": \"eyJraWQiOiI0...\", \"token_type\": \"bearer\", \"expires_in\": 119 }` 4.  Use the new access token value in requests to Identity Governance REST endpoints as described above.  ### Refresh Token Revocation Request  1.  Determine the OAuth 2.0 token revocation endpoint for the authorization server:     1.  OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2/revoke     2.  NAM: https://server/nidp/oauth/nam/revoke 2.  Create an HTTP POST request with the following characteristics (see [RFC 7009 section 2.1](\"https://tools.ietf.org/html/rfc7009#section-2.1\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body:`token=[refresh-token]&client_id=[iac-client-id]&client_secret=[iac-client-secret]` 3.  Issue the request to the OAuth 2.0 revocation endpoint.      As a shortcut to learning the API, run Identity Governance in a browser with developer tools enabled and watch the network traffic between the browser and the server.  * * *
+ *
+ * OpenAPI spec version: 3.7.3-202
+ * 
+ *
+ * NOTE: This class is auto generated by the swagger code generator program.
+ * https://github.com/swagger-api/swagger-codegen.git
+ * Do not edit the class manually.
+ */
+
+package io.swagger.client.model;
+
+import java.util.Objects;
+import java.util.Arrays;
+import com.google.gson.TypeAdapter;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.annotations.SerializedName;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import io.swagger.client.model.Attribute;
+import io.swagger.client.model.SearchCriteria;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+/**
+ * Download
+ */
+
+
+
+public class Download {
+  @SerializedName("count")
+  private Long count = null;
+
+  @SerializedName("csvDownloadId")
+  private String csvDownloadId = null;
+
+  @SerializedName("description")
+  private String description = null;
+
+  @SerializedName("filterString")
+  private String filterString = null;
+
+  @SerializedName("headers")
+  private List<Attribute> headers = null;
+
+  @SerializedName("ids")
+  private List<Long> ids = null;
+
+  @SerializedName("searchCriteria")
+  private SearchCriteria searchCriteria = null;
+
+  @SerializedName("state")
+  private String state = null;
+
+  @SerializedName("type")
+  private String type = null;
+
+  @SerializedName("uniqueIds")
+  private List<String> uniqueIds = null;
+
+  @SerializedName("uuids")
+  private List<UUID> uuids = null;
+
+  public Download count(Long count) {
+    this.count = count;
+    return this;
+  }
+
+   /**
+   * Get count
+   * @return count
+  **/
+  @ApiModelProperty(value = "")
+  public Long getCount() {
+    return count;
+  }
+
+  public void setCount(Long count) {
+    this.count = count;
+  }
+
+  public Download csvDownloadId(String csvDownloadId) {
+    this.csvDownloadId = csvDownloadId;
+    return this;
+  }
+
+   /**
+   * Get csvDownloadId
+   * @return csvDownloadId
+  **/
+  @ApiModelProperty(value = "")
+  public String getCsvDownloadId() {
+    return csvDownloadId;
+  }
+
+  public void setCsvDownloadId(String csvDownloadId) {
+    this.csvDownloadId = csvDownloadId;
+  }
+
+  public Download description(String description) {
+    this.description = description;
+    return this;
+  }
+
+   /**
+   * Get description
+   * @return description
+  **/
+  @ApiModelProperty(value = "")
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  public Download filterString(String filterString) {
+    this.filterString = filterString;
+    return this;
+  }
+
+   /**
+   * Get filterString
+   * @return filterString
+  **/
+  @ApiModelProperty(value = "")
+  public String getFilterString() {
+    return filterString;
+  }
+
+  public void setFilterString(String filterString) {
+    this.filterString = filterString;
+  }
+
+  public Download headers(List<Attribute> headers) {
+    this.headers = headers;
+    return this;
+  }
+
+  public Download addHeadersItem(Attribute headersItem) {
+    if (this.headers == null) {
+      this.headers = new ArrayList<Attribute>();
+    }
+    this.headers.add(headersItem);
+    return this;
+  }
+
+   /**
+   * Get headers
+   * @return headers
+  **/
+  @ApiModelProperty(value = "")
+  public List<Attribute> getHeaders() {
+    return headers;
+  }
+
+  public void setHeaders(List<Attribute> headers) {
+    this.headers = headers;
+  }
+
+  public Download ids(List<Long> ids) {
+    this.ids = ids;
+    return this;
+  }
+
+  public Download addIdsItem(Long idsItem) {
+    if (this.ids == null) {
+      this.ids = new ArrayList<Long>();
+    }
+    this.ids.add(idsItem);
+    return this;
+  }
+
+   /**
+   * Get ids
+   * @return ids
+  **/
+  @ApiModelProperty(value = "")
+  public List<Long> getIds() {
+    return ids;
+  }
+
+  public void setIds(List<Long> ids) {
+    this.ids = ids;
+  }
+
+  public Download searchCriteria(SearchCriteria searchCriteria) {
+    this.searchCriteria = searchCriteria;
+    return this;
+  }
+
+   /**
+   * Get searchCriteria
+   * @return searchCriteria
+  **/
+  @ApiModelProperty(value = "")
+  public SearchCriteria getSearchCriteria() {
+    return searchCriteria;
+  }
+
+  public void setSearchCriteria(SearchCriteria searchCriteria) {
+    this.searchCriteria = searchCriteria;
+  }
+
+  public Download state(String state) {
+    this.state = state;
+    return this;
+  }
+
+   /**
+   * Get state
+   * @return state
+  **/
+  @ApiModelProperty(value = "")
+  public String getState() {
+    return state;
+  }
+
+  public void setState(String state) {
+    this.state = state;
+  }
+
+  public Download type(String type) {
+    this.type = type;
+    return this;
+  }
+
+   /**
+   * Get type
+   * @return type
+  **/
+  @ApiModelProperty(value = "")
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public Download uniqueIds(List<String> uniqueIds) {
+    this.uniqueIds = uniqueIds;
+    return this;
+  }
+
+  public Download addUniqueIdsItem(String uniqueIdsItem) {
+    if (this.uniqueIds == null) {
+      this.uniqueIds = new ArrayList<String>();
+    }
+    this.uniqueIds.add(uniqueIdsItem);
+    return this;
+  }
+
+   /**
+   * Get uniqueIds
+   * @return uniqueIds
+  **/
+  @ApiModelProperty(value = "")
+  public List<String> getUniqueIds() {
+    return uniqueIds;
+  }
+
+  public void setUniqueIds(List<String> uniqueIds) {
+    this.uniqueIds = uniqueIds;
+  }
+
+  public Download uuids(List<UUID> uuids) {
+    this.uuids = uuids;
+    return this;
+  }
+
+  public Download addUuidsItem(UUID uuidsItem) {
+    if (this.uuids == null) {
+      this.uuids = new ArrayList<UUID>();
+    }
+    this.uuids.add(uuidsItem);
+    return this;
+  }
+
+   /**
+   * Get uuids
+   * @return uuids
+  **/
+  @ApiModelProperty(value = "")
+  public List<UUID> getUuids() {
+    return uuids;
+  }
+
+  public void setUuids(List<UUID> uuids) {
+    this.uuids = uuids;
+  }
+
+
+  @Override
+  public boolean equals(java.lang.Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    Download download = (Download) o;
+    return Objects.equals(this.count, download.count) &&
+        Objects.equals(this.csvDownloadId, download.csvDownloadId) &&
+        Objects.equals(this.description, download.description) &&
+        Objects.equals(this.filterString, download.filterString) &&
+        Objects.equals(this.headers, download.headers) &&
+        Objects.equals(this.ids, download.ids) &&
+        Objects.equals(this.searchCriteria, download.searchCriteria) &&
+        Objects.equals(this.state, download.state) &&
+        Objects.equals(this.type, download.type) &&
+        Objects.equals(this.uniqueIds, download.uniqueIds) &&
+        Objects.equals(this.uuids, download.uuids);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(count, csvDownloadId, description, filterString, headers, ids, searchCriteria, state, type, uniqueIds, uuids);
+  }
+
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("class Download {\n");
+    
+    sb.append("    count: ").append(toIndentedString(count)).append("\n");
+    sb.append("    csvDownloadId: ").append(toIndentedString(csvDownloadId)).append("\n");
+    sb.append("    description: ").append(toIndentedString(description)).append("\n");
+    sb.append("    filterString: ").append(toIndentedString(filterString)).append("\n");
+    sb.append("    headers: ").append(toIndentedString(headers)).append("\n");
+    sb.append("    ids: ").append(toIndentedString(ids)).append("\n");
+    sb.append("    searchCriteria: ").append(toIndentedString(searchCriteria)).append("\n");
+    sb.append("    state: ").append(toIndentedString(state)).append("\n");
+    sb.append("    type: ").append(toIndentedString(type)).append("\n");
+    sb.append("    uniqueIds: ").append(toIndentedString(uniqueIds)).append("\n");
+    sb.append("    uuids: ").append(toIndentedString(uuids)).append("\n");
+    sb.append("}");
+    return sb.toString();
+  }
+
+  /**
+   * Convert the given object to string with each line indented by 4 spaces
+   * (except the first line).
+   */
+  private String toIndentedString(java.lang.Object o) {
+    if (o == null) {
+      return "null";
+    }
+    return o.toString().replace("\n", "\n    ");
+  }
+
+}
