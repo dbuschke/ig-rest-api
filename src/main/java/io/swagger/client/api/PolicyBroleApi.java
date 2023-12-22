@@ -921,7 +921,7 @@ public class PolicyBroleApi {
             });
         }
 
-        String[] localVarAuthNames = new String[] { "OSP" };
+        String[] localVarAuthNames = new String[] { };
         return apiClient.buildCall(localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
     }
     

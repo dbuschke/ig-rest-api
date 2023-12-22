@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import io.swagger.client.model.Authcauses;
 import io.swagger.client.model.Permission;
+import io.swagger.client.model.Permissions;
 import io.swagger.client.model.Response;
 import io.swagger.client.model.SearchCriteria;
 
@@ -105,7 +106,7 @@ public class DataPermsApi {
             });
         }
 
-        String[] localVarAuthNames = new String[] {  };
+        String[] localVarAuthNames = new String[] { };
         return apiClient.buildCall(localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
     }
     
@@ -985,8 +986,8 @@ public class DataPermsApi {
      * @return Response
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public Response getPermissionsDataAdvancedFilter(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, String qMatch, Boolean typeAheadSearch, Boolean showCt, Boolean reviewablesOnly, Boolean staticOnly, List<String> attrFilter) throws ApiException {
-        ApiResponse<Response> resp = getPermissionsDataAdvancedFilterWithHttpInfo(body, size, q, sortBy, sortOrder, indexFrom, listAttr, qMatch, typeAheadSearch, showCt, reviewablesOnly, staticOnly, attrFilter);
+    public Permissions getPermissionsDataAdvancedFilter(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, String qMatch, Boolean typeAheadSearch, Boolean showCt, Boolean reviewablesOnly, Boolean staticOnly, List<String> attrFilter) throws ApiException {
+        ApiResponse<Permissions> resp = getPermissionsDataAdvancedFilterWithHttpInfo(body, size, q, sortBy, sortOrder, indexFrom, listAttr, qMatch, typeAheadSearch, showCt, reviewablesOnly, staticOnly, attrFilter);
         return resp.getData();
     }
 
@@ -1009,9 +1010,9 @@ public class DataPermsApi {
      * @return ApiResponse&lt;Response&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Response> getPermissionsDataAdvancedFilterWithHttpInfo(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, String qMatch, Boolean typeAheadSearch, Boolean showCt, Boolean reviewablesOnly, Boolean staticOnly, List<String> attrFilter) throws ApiException {
+    public ApiResponse<Permissions> getPermissionsDataAdvancedFilterWithHttpInfo(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, String qMatch, Boolean typeAheadSearch, Boolean showCt, Boolean reviewablesOnly, Boolean staticOnly, List<String> attrFilter) throws ApiException {
         com.squareup.okhttp.Call call = getPermissionsDataAdvancedFilterValidateBeforeCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, qMatch, typeAheadSearch, showCt, reviewablesOnly, staticOnly, attrFilter, null, null);
-        Type localVarReturnType = new TypeToken<Response>(){}.getType();
+        Type localVarReturnType = new TypeToken<Permissions>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
