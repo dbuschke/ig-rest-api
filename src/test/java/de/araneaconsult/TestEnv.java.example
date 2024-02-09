@@ -1,0 +1,12 @@
+package de.araneaconsult;
+
+public class TestEnv {
+	public final static String UA_URL = "https://<osp-domain>:8543/osp";
+	public final static String UA_OSP_CLIENTID = "<client id>";
+	public final static String UA_OSP_SECRET = "<client secret>";
+	public final static String UA_USER = "<idm user cn>";
+	public final static String UA_PASS = "<idm user password>";
+
+	public final static String PERMISSION = "<permission used in IG>";
+	public final static String DEPARTMENT = "<department of users>";
+}

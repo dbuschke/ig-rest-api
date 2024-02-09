@@ -71,7 +71,7 @@ public class Test {
         uniquenessCriterion = new UniquenessCriterion();
         uniquenessCriterion.setAttributeKey("name");
         uniquenessCriterion.setOperator("EQ");
-        uniquenessCriterion.setValue("\\T_DBU_01_TREE\\data\\groups\\asdf");
+        uniquenessCriterion.setValue(TestEnv.PERMISSION);
         criteria.addChildCriteriaItem(uniquenessCriterion);
 
         searchCriteria.addCriteriasItem(json.serialize(criteria));
@@ -86,7 +86,7 @@ public class Test {
         uniquenessCriterion = new UniquenessCriterion();
         uniquenessCriterion.setAttributeKey("department");
         uniquenessCriterion.operator("EQ");
-        uniquenessCriterion.addValuesItem("Department 0-0-1");
+        uniquenessCriterion.addValuesItem(TestEnv.DEPARTMENT);
         criteria.addChildCriteriaItem(uniquenessCriterion);
         britem.setCriteria(json.serialize(criteria));
         //britem.setType("CRITERIA");
