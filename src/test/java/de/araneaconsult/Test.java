@@ -49,7 +49,7 @@ public class Test {
         searchCriteria.addCriteriasItem(json.serialize(criteria));
 
 
-        Roles roles = broleApi.getBusinessRolePolicies(searchCriteria, null, null, null, null, null, null, null, null, null, null, null, null);
+        Roles roles = broleApi.getBusinessRolePolicies(searchCriteria, null, null, null, null, null, null, null, null, null, null, null, null, null);
         Burole burole = new Burole();
         if (roles.getArraySize() == 1) {
             burole = roles.getRoles().get(0);

@@ -1,8 +1,8 @@
 /*
  * Identity Governance REST APIs
- * Welcome to the NetIQ Identity Governance API Documentation page. This is the API reference for the NetIQ Identity Governance REST API.  Below you will see the main sections of the API. Click each section in order to see the endpoints that are available in that category as well as information related to which Identity Governance roles have access. Global Administrators are not included in the accepted roles list for each API however they have access to all APIs. Those APIs that do not display a list of accepted roles are accessible for any role.  The NetIQ Identity Governance REST API uses the OAuth2 protocol for authentication. Therefore, in order to make any of these calls, you must obtain a token, and include that token in the Authentication header.  OSP = One SSO Provider   NAM = NetIQ Access Manager  **Note:** The various OAuth 2.0 endpoints described below can also be obtained from the OAuth/OpenID Connect provider 'metadata' found at the following location relative to the 'issuer URI':`[issuer-uri]/.well-known/openid-configuration`  Issuer URIs:  *   OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2 *   NAM: https://server/nidp/oauth/nam  See [Open ID Connect Discovery 1.0](\"https://openid.net/specs/openid-connect-discovery-1_0.html\") for more information.  Obtaining the Initial Access Token ==================================  ### OAuth 2.0 Resource Owner Password Credentials Grant Request  1.  Determine the OAuth 2.0 token endpoint for the authorization server:     1.  OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2/token     2.  NAM: https://server/nidp/oauth/nam/token 2.  Obtain the Identity Governance 'iac' client identifier and client secret.     1.  OSP         1.  The identifier is usually _iac_ but can be changed with the configutil or configupdate utilities.         2.  The client secret is the 'service password' specified during installation but can be changed with the configutil or configupdate utilities.     2.  NAM         1.  Open the Access Manager administrator console in a browser and navigate to the _OAuth & OpenID Connect_ tab on the _IDPCluster_ page. Select the _Client Applications_ heading.         2.  Click on the 'View' icon under the 'Actions' heading for the _Client Application_ named _iac_.         3.  Click on _Click to reveal_.         4.  Copy the _Client ID_ value and the _Client Secret_ value.         5.  Ensure that _Resource Owner Credentials_ appears in the _Grants Required_ list. If not, edit the client definition and check the _Resource Owner Credentials_ box, save the client definition, and update the IDP. 3.  Obtain the user identifier and password of a user with the required privilege for the desired API endpoint. 4.  Create an HTTP POST request with the following characteristics (see [RFC 6749 section 4.3.1](\"https://tools.ietf.org/html/rfc6749#section-4.3.1\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body: `grant_type=password&username=<user-id>&password=[user-password]&client_id=[iac-client-id]&client_secret=[iac-client-secret]`where the square-bracket-delimited names are replaced with the client and user values obtained in the steps above.  Also note the '**& amp;**' shown in this and other POST payload examples should actually be '**&**'. 5.  Issue the request to the OAuth 2.0 token endpoint. 6.  The JSON response will be similar to the following (see [RFC 6749 section 4.3.3](\"https://tools.ietf.org/html/rfc6749#section-4.3.3\")):`{ \"access_token\": \"eyJraWQiOiI0...\", \"token_type\": \"bearer\", \"expires_in\": 119, \"refresh_token\": \"eyJhbGciOiJ...\" }` 7.  When issuing a REST request to an Identity Governance endpoint pass the access token value using an HTTP _Bearer_ authorization header (see [RFC 6750 section 2.1](\"https://tools.ietf.org/html/rfc6750#section-2.1\")):`Authorization: Bearer [access-token]`  Refresh Tokens ==============  If the authorization server is configured to return an OAuth 2.0 refresh token in the JSON result of the Resource Owner Password Credential Grant request then the refresh token should be used to obtain additional access tokens after the currently-valid access token expires.  In addition, each refresh token issued on behalf of a user causes a 'revocation entry' to be stored in an attribute on the user's LDAP object. Obtaining many refresh tokens without revoking previously obtained, unexpired refresh tokens will eventually exceed the capacity of the attribute on the user's LDAP object and will result in errors.  Therefore, if a refresh token is obtained it must be revoked after it is no longer needed.  ### Access Token Request  1.  Create an HTTP POST request with the following characteristics (see [RFC 6749 section 6](\"https://tools.ietf.org/html/rfc6749#section-6\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body: `grant_type=refresh_token&refresh_token=<refresh-token>&client_id=<iac-clientid>&client_secret=[iac-client-secret]`where the square-bracket-delimited names are replaced with the obvious values. 2.  Issue the request to the OAuth 2.0 token endpoint. 3.  The JSON result will be similar to`{ \"access_token\": \"eyJraWQiOiI0...\", \"token_type\": \"bearer\", \"expires_in\": 119 }` 4.  Use the new access token value in requests to Identity Governance REST endpoints as described above.  ### Refresh Token Revocation Request  1.  Determine the OAuth 2.0 token revocation endpoint for the authorization server:     1.  OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2/revoke     2.  NAM: https://server/nidp/oauth/nam/revoke 2.  Create an HTTP POST request with the following characteristics (see [RFC 7009 section 2.1](\"https://tools.ietf.org/html/rfc7009#section-2.1\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body:`token=[refresh-token]&client_id=[iac-client-id]&client_secret=[iac-client-secret]` 3.  Issue the request to the OAuth 2.0 revocation endpoint.      As a shortcut to learning the API, run Identity Governance in a browser with developer tools enabled and watch the network traffic between the browser and the server.  * * *
+ * Welcome to the NetIQ Identity Governance API Documentation page. This is the API reference for the NetIQ Identity Governance REST API.  Below you will see the main sections of the API. Click each section in order to see the endpoints that are available in that category as well as information related to which Identity Governance roles have access. Global Administrators are not included in the accepted roles list for each API however they have access to all APIs. Those APIs that do not display a list of accepted roles are accessible for any role. An authenticated user is one that has the RT_ROLE_USER permission. The Operations Administrator SaaS is an example of a user that does not have the RT_ROLE_USER permission.  The NetIQ Identity Governance REST API uses the OAuth2 protocol for authentication. Therefore, in order to make any of these calls, you must obtain a token, and include that token in the Authentication header.  OSP = One SSO Provider   NAM = NetIQ Access Manager  **Note:** The various OAuth 2.0 endpoints described below can also be obtained from the OAuth/OpenID Connect provider 'metadata' found at the following location relative to the 'issuer URI':`[issuer-uri]/.well-known/openid-configuration`  Issuer URIs:  *   OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2 *   NAM: https://server/nidp/oauth/nam  See [Open ID Connect Discovery 1.0](\"https://openid.net/specs/openid-connect-discovery-1_0.html\") for more information.  Obtaining the Initial Access Token ==================================  ### OAuth 2.0 Resource Owner Password Credentials Grant Request  1.  Determine the OAuth 2.0 token endpoint for the authorization server:     1.  OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2/token     2.  NAM: https://server/nidp/oauth/nam/token 2.  Obtain the Identity Governance 'iac' client identifier and client secret.     1.  OSP         1.  The identifier is usually _iac_ but can be changed with the configutil or configupdate utilities.         2.  The client secret is the 'service password' specified during installation but can be changed with the configutil or configupdate utilities.     2.  NAM         1.  Open the Access Manager administrator console in a browser and navigate to the _OAuth & OpenID Connect_ tab on the _IDPCluster_ page. Select the _Client Applications_ heading.         2.  Click on the 'View' icon under the 'Actions' heading for the _Client Application_ named _iac_.         3.  Click on _Click to reveal_.         4.  Copy the _Client ID_ value and the _Client Secret_ value.         5.  Ensure that _Resource Owner Credentials_ appears in the _Grants Required_ list. If not, edit the client definition and check the _Resource Owner Credentials_ box, save the client definition, and update the IDP. 3.  Obtain the user identifier and password of a user with the required privilege for the desired API endpoint. 4.  Create an HTTP POST request with the following characteristics (see [RFC 6749 section 4.3.1](\"https://tools.ietf.org/html/rfc6749#section-4.3.1\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body: `grant_type=password&username=<user-id>&password=[user-password]&client_id=[iac-client-id]&client_secret=[iac-client-secret]`where the square-bracket-delimited names are replaced with the client and user values obtained in the steps above.  Also note the '**& amp;**' shown in this and other POST payload examples should actually be '**&**'. 5.  Issue the request to the OAuth 2.0 token endpoint. 6.  The JSON response will be similar to the following (see [RFC 6749 section 4.3.3](\"https://tools.ietf.org/html/rfc6749#section-4.3.3\")):`{ \"access_token\": \"eyJraWQiOiI0...\", \"token_type\": \"bearer\", \"expires_in\": 119, \"refresh_token\": \"eyJhbGciOiJ...\" }` 7.  When issuing a REST request to an Identity Governance endpoint pass the access token value using an HTTP _Bearer_ authorization header (see [RFC 6750 section 2.1](\"https://tools.ietf.org/html/rfc6750#section-2.1\")):`Authorization: Bearer [access-token]`  Refresh Tokens ==============  If the authorization server is configured to return an OAuth 2.0 refresh token in the JSON result of the Resource Owner Password Credential Grant request then the refresh token should be used to obtain additional access tokens after the currently-valid access token expires.  In addition, each refresh token issued on behalf of a user causes a 'revocation entry' to be stored in an attribute on the user's LDAP object. Obtaining many refresh tokens without revoking previously obtained, unexpired refresh tokens will eventually exceed the capacity of the attribute on the user's LDAP object and will result in errors.  Therefore, if a refresh token is obtained it must be revoked after it is no longer needed.  ### Access Token Request  1.  Create an HTTP POST request with the following characteristics (see [RFC 6749 section 6](\"https://tools.ietf.org/html/rfc6749#section-6\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body: `grant_type=refresh_token&refresh_token=<refresh-token>&client_id=<iac-clientid>&client_secret=[iac-client-secret]`where the square-bracket-delimited names are replaced with the obvious values. 2.  Issue the request to the OAuth 2.0 token endpoint. 3.  The JSON result will be similar to`{ \"access_token\": \"eyJraWQiOiI0...\", \"token_type\": \"bearer\", \"expires_in\": 119 }` 4.  Use the new access token value in requests to Identity Governance REST endpoints as described above.  ### Refresh Token Revocation Request  1.  Determine the OAuth 2.0 token revocation endpoint for the authorization server:     1.  OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2/revoke     2.  NAM: https://server/nidp/oauth/nam/revoke 2.  Create an HTTP POST request with the following characteristics (see [RFC 7009 section 2.1](\"https://tools.ietf.org/html/rfc7009#section-2.1\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body:`token=[refresh-token]&client_id=[iac-client-id]&client_secret=[iac-client-secret]` 3.  Issue the request to the OAuth 2.0 revocation endpoint.      As a shortcut to learning the API, run Identity Governance in a browser with developer tools enabled and watch the network traffic between the browser and the server.  REST API and Data/Service Access Rights =======================================  The authenticated user may need two kinds of rights to invoke a REST API:  1. Authorization to call the API. 2. Permission(s) to access data returned by the API or to access services the API uses.  The user's roles are checked to see if they have the required rights.  As an example, suppose that John Jones is the user, and the REST API he wants to call is **GET /data/perms/authorizedby/2/causes**, and it requires a permission named **ViewAuthResourceInfo**.  If John Jones does not have the authorization to call the API he will get an error that looks like this:  `{     \"Fault\": {        \"Code\": {           \"Value\": \"Sender\",           \"Subcode\": {              \"Value\": \"RestApiUnAuthorized\"           }        },        \"Reason\": {           \"Text\": \"Denying access to /data/perms/authorizedby/2/causes for user John Jones.\"        }     } }`  If John Jones is allowed to call the REST API, but does not have the **ViewAuthResourceInfo** permission, he would get an error that looks like this:  `{     \"Fault\": {        \"Code\": {           \"Value\": \"Sender\",           \"Subcode\": {              \"Value\": \"UnauthorizedDataAccess\"           }        },        \"Reason\": {           \"Text\": \"Unauthorized data access attempt: User [John Jones] has no right [ViewAuthResourceInfo] for requested data.\",           \"Stack\": null        }     } }`  To determine what permissions a particular role has, you can query the OPS database.  For example, the query below returns all permissions for the **Fulfillment Administrator** role.  To get permissions for a different role, just change **'Fulfillment Administrator'** value to the name of the role you want:  ` SELECT distinct     ar.role_name as role_short_name,     ar.role_display_name as role_display_name,     ap.permission_name as permission_name FROM auth_role_mapping arm JOIN auth_role ar on ar.id = arm.auth_role JOIN auth_scope asp on asp.id = arm.auth_scope JOIN auth_permission ap on ap.id = arm.auth_perm WHERE     asp.rest_api_uri IS NULL     and ar.role_display_name = 'Fulfillment Administrator' order by ar.role_display_name, ap.permission_name `  * * *
  *
- * OpenAPI spec version: 3.7.3-202
+ * OpenAPI spec version: 4.2.0-644
  * 
  *
  * NOTE: This class is auto generated by the swagger code generator program.
@@ -23,6 +23,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.client.model.Param;
 import io.swagger.client.model.RequestItem;
+import io.swagger.client.model.SelectAccounts;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,11 +38,17 @@ public class RequestItem {
   @SerializedName("appDisplayName")
   private String appDisplayName = null;
 
+  @SerializedName("applyToPerms")
+  private Boolean applyToPerms = null;
+
   @SerializedName("approvalFormId")
   private Long approvalFormId = null;
 
   @SerializedName("canRequestThisForOthers")
   private Boolean canRequestThisForOthers = null;
+
+  @SerializedName("changeExpiration")
+  private Boolean changeExpiration = null;
 
   @SerializedName("currentApprovalStep")
   private Long currentApprovalStep = null;
@@ -127,6 +134,9 @@ public class RequestItem {
   @SerializedName("expirationDate")
   private OffsetDateTime expirationDate = null;
 
+  @SerializedName("expirationRequest")
+  private Boolean expirationRequest = null;
+
   @SerializedName("flowdata")
   private String flowdata = null;
 
@@ -165,6 +175,15 @@ public class RequestItem {
 
   @SerializedName("recipient")
   private String recipient = null;
+
+  @SerializedName("recipientAccountDeleted")
+  private Boolean recipientAccountDeleted = null;
+
+  @SerializedName("recipientAccountName")
+  private String recipientAccountName = null;
+
+  @SerializedName("recipientAccountUniqueId")
+  private String recipientAccountUniqueId = null;
 
   @SerializedName("recipientDeleted")
   private Boolean recipientDeleted = null;
@@ -230,7 +249,11 @@ public class RequestItem {
     @SerializedName("REMOVE_BUS_ROLE_AUTHS")
     REMOVE_BUS_ROLE_AUTHS("REMOVE_BUS_ROLE_AUTHS"),
     @SerializedName("MODIFY_TECH_ROLE_DEFN")
-    MODIFY_TECH_ROLE_DEFN("MODIFY_TECH_ROLE_DEFN");
+    MODIFY_TECH_ROLE_DEFN("MODIFY_TECH_ROLE_DEFN"),
+    @SerializedName("ADD_BUSINESS_ROLE_MEMBERSHIP")
+    ADD_BUSINESS_ROLE_MEMBERSHIP("ADD_BUSINESS_ROLE_MEMBERSHIP"),
+    @SerializedName("REMOVE_BUSINESS_ROLE_MEMBERSHIP")
+    REMOVE_BUSINESS_ROLE_MEMBERSHIP("REMOVE_BUSINESS_ROLE_MEMBERSHIP");
 
     private String value;
 
@@ -271,6 +294,9 @@ public class RequestItem {
   @SerializedName("requesterFeedback")
   private String requesterFeedback = null;
 
+  @SerializedName("resourceRequestId")
+  private Long resourceRequestId = null;
+
   @SerializedName("resourceRequestItemId")
   private Long resourceRequestItemId = null;
 
@@ -282,6 +308,9 @@ public class RequestItem {
 
   @SerializedName("roleLevelApprovalItems")
   private List<RequestItem> roleLevelApprovalItems = null;
+
+  @SerializedName("selectedAccounts")
+  private List<SelectAccounts> selectedAccounts = null;
 
   @SerializedName("showDefaultResourceImage")
   private Boolean showDefaultResourceImage = null;
@@ -305,6 +334,24 @@ public class RequestItem {
 
   public void setAppDisplayName(String appDisplayName) {
     this.appDisplayName = appDisplayName;
+  }
+
+  public RequestItem applyToPerms(Boolean applyToPerms) {
+    this.applyToPerms = applyToPerms;
+    return this;
+  }
+
+   /**
+   * Get applyToPerms
+   * @return applyToPerms
+  **/
+  @ApiModelProperty(value = "")
+  public Boolean isApplyToPerms() {
+    return applyToPerms;
+  }
+
+  public void setApplyToPerms(Boolean applyToPerms) {
+    this.applyToPerms = applyToPerms;
   }
 
   public RequestItem approvalFormId(Long approvalFormId) {
@@ -341,6 +388,24 @@ public class RequestItem {
 
   public void setCanRequestThisForOthers(Boolean canRequestThisForOthers) {
     this.canRequestThisForOthers = canRequestThisForOthers;
+  }
+
+  public RequestItem changeExpiration(Boolean changeExpiration) {
+    this.changeExpiration = changeExpiration;
+    return this;
+  }
+
+   /**
+   * Get changeExpiration
+   * @return changeExpiration
+  **/
+  @ApiModelProperty(value = "")
+  public Boolean isChangeExpiration() {
+    return changeExpiration;
+  }
+
+  public void setChangeExpiration(Boolean changeExpiration) {
+    this.changeExpiration = changeExpiration;
   }
 
   public RequestItem currentApprovalStep(Long currentApprovalStep) {
@@ -467,6 +532,24 @@ public class RequestItem {
 
   public void setExpirationDate(OffsetDateTime expirationDate) {
     this.expirationDate = expirationDate;
+  }
+
+  public RequestItem expirationRequest(Boolean expirationRequest) {
+    this.expirationRequest = expirationRequest;
+    return this;
+  }
+
+   /**
+   * Get expirationRequest
+   * @return expirationRequest
+  **/
+  @ApiModelProperty(value = "")
+  public Boolean isExpirationRequest() {
+    return expirationRequest;
+  }
+
+  public void setExpirationRequest(Boolean expirationRequest) {
+    this.expirationRequest = expirationRequest;
   }
 
   public RequestItem flowdata(String flowdata) {
@@ -711,6 +794,60 @@ public class RequestItem {
     this.recipient = recipient;
   }
 
+  public RequestItem recipientAccountDeleted(Boolean recipientAccountDeleted) {
+    this.recipientAccountDeleted = recipientAccountDeleted;
+    return this;
+  }
+
+   /**
+   * Get recipientAccountDeleted
+   * @return recipientAccountDeleted
+  **/
+  @ApiModelProperty(value = "")
+  public Boolean isRecipientAccountDeleted() {
+    return recipientAccountDeleted;
+  }
+
+  public void setRecipientAccountDeleted(Boolean recipientAccountDeleted) {
+    this.recipientAccountDeleted = recipientAccountDeleted;
+  }
+
+  public RequestItem recipientAccountName(String recipientAccountName) {
+    this.recipientAccountName = recipientAccountName;
+    return this;
+  }
+
+   /**
+   * Get recipientAccountName
+   * @return recipientAccountName
+  **/
+  @ApiModelProperty(value = "")
+  public String getRecipientAccountName() {
+    return recipientAccountName;
+  }
+
+  public void setRecipientAccountName(String recipientAccountName) {
+    this.recipientAccountName = recipientAccountName;
+  }
+
+  public RequestItem recipientAccountUniqueId(String recipientAccountUniqueId) {
+    this.recipientAccountUniqueId = recipientAccountUniqueId;
+    return this;
+  }
+
+   /**
+   * Get recipientAccountUniqueId
+   * @return recipientAccountUniqueId
+  **/
+  @ApiModelProperty(value = "")
+  public String getRecipientAccountUniqueId() {
+    return recipientAccountUniqueId;
+  }
+
+  public void setRecipientAccountUniqueId(String recipientAccountUniqueId) {
+    this.recipientAccountUniqueId = recipientAccountUniqueId;
+  }
+
   public RequestItem recipientDeleted(Boolean recipientDeleted) {
     this.recipientDeleted = recipientDeleted;
     return this;
@@ -819,6 +956,24 @@ public class RequestItem {
     this.requesterFeedback = requesterFeedback;
   }
 
+  public RequestItem resourceRequestId(Long resourceRequestId) {
+    this.resourceRequestId = resourceRequestId;
+    return this;
+  }
+
+   /**
+   * Get resourceRequestId
+   * @return resourceRequestId
+  **/
+  @ApiModelProperty(value = "")
+  public Long getResourceRequestId() {
+    return resourceRequestId;
+  }
+
+  public void setResourceRequestId(Long resourceRequestId) {
+    this.resourceRequestId = resourceRequestId;
+  }
+
   public RequestItem resourceRequestItemId(Long resourceRequestItemId) {
     this.resourceRequestItemId = resourceRequestItemId;
     return this;
@@ -899,6 +1054,32 @@ public class RequestItem {
     this.roleLevelApprovalItems = roleLevelApprovalItems;
   }
 
+  public RequestItem selectedAccounts(List<SelectAccounts> selectedAccounts) {
+    this.selectedAccounts = selectedAccounts;
+    return this;
+  }
+
+  public RequestItem addSelectedAccountsItem(SelectAccounts selectedAccountsItem) {
+    if (this.selectedAccounts == null) {
+      this.selectedAccounts = new ArrayList<SelectAccounts>();
+    }
+    this.selectedAccounts.add(selectedAccountsItem);
+    return this;
+  }
+
+   /**
+   * Get selectedAccounts
+   * @return selectedAccounts
+  **/
+  @ApiModelProperty(value = "")
+  public List<SelectAccounts> getSelectedAccounts() {
+    return selectedAccounts;
+  }
+
+  public void setSelectedAccounts(List<SelectAccounts> selectedAccounts) {
+    this.selectedAccounts = selectedAccounts;
+  }
+
   public RequestItem showDefaultResourceImage(Boolean showDefaultResourceImage) {
     this.showDefaultResourceImage = showDefaultResourceImage;
     return this;
@@ -946,8 +1127,10 @@ public class RequestItem {
     }
     RequestItem requestItem = (RequestItem) o;
     return Objects.equals(this.appDisplayName, requestItem.appDisplayName) &&
+        Objects.equals(this.applyToPerms, requestItem.applyToPerms) &&
         Objects.equals(this.approvalFormId, requestItem.approvalFormId) &&
         Objects.equals(this.canRequestThisForOthers, requestItem.canRequestThisForOthers) &&
+        Objects.equals(this.changeExpiration, requestItem.changeExpiration) &&
         Objects.equals(this.currentApprovalStep, requestItem.currentApprovalStep) &&
         Objects.equals(this.decision, requestItem.decision) &&
         Objects.equals(this.deleted, requestItem.deleted) &&
@@ -955,6 +1138,7 @@ public class RequestItem {
         Objects.equals(this.displayName, requestItem.displayName) &&
         Objects.equals(this.effectiveDate, requestItem.effectiveDate) &&
         Objects.equals(this.expirationDate, requestItem.expirationDate) &&
+        Objects.equals(this.expirationRequest, requestItem.expirationRequest) &&
         Objects.equals(this.flowdata, requestItem.flowdata) &&
         Objects.equals(this.fulfillmentInstructions, requestItem.fulfillmentInstructions) &&
         Objects.equals(this.hasRequiredField, requestItem.hasRequiredField) &&
@@ -968,23 +1152,28 @@ public class RequestItem {
         Objects.equals(this.permType, requestItem.permType) &&
         Objects.equals(this.reason, requestItem.reason) &&
         Objects.equals(this.recipient, requestItem.recipient) &&
+        Objects.equals(this.recipientAccountDeleted, requestItem.recipientAccountDeleted) &&
+        Objects.equals(this.recipientAccountName, requestItem.recipientAccountName) &&
+        Objects.equals(this.recipientAccountUniqueId, requestItem.recipientAccountUniqueId) &&
         Objects.equals(this.recipientDeleted, requestItem.recipientDeleted) &&
         Objects.equals(this.recipientDisplayName, requestItem.recipientDisplayName) &&
         Objects.equals(this.requestFormId, requestItem.requestFormId) &&
         Objects.equals(this.requestItem, requestItem.requestItem) &&
         Objects.equals(this.requestType, requestItem.requestType) &&
         Objects.equals(this.requesterFeedback, requestItem.requesterFeedback) &&
+        Objects.equals(this.resourceRequestId, requestItem.resourceRequestId) &&
         Objects.equals(this.resourceRequestItemId, requestItem.resourceRequestItemId) &&
         Objects.equals(this.roleLevelApproval, requestItem.roleLevelApproval) &&
         Objects.equals(this.roleLevelApprovalCount, requestItem.roleLevelApprovalCount) &&
         Objects.equals(this.roleLevelApprovalItems, requestItem.roleLevelApprovalItems) &&
+        Objects.equals(this.selectedAccounts, requestItem.selectedAccounts) &&
         Objects.equals(this.showDefaultResourceImage, requestItem.showDefaultResourceImage) &&
         Objects.equals(this.type, requestItem.type);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(appDisplayName, approvalFormId, canRequestThisForOthers, currentApprovalStep, decision, deleted, description, displayName, effectiveDate, expirationDate, flowdata, fulfillmentInstructions, hasRequiredField, hideResourceImage, imageUrl, instanceGuid, matchesFilter, originalItemDisplayName, originalRequestItem, params, permType, reason, recipient, recipientDeleted, recipientDisplayName, requestFormId, requestItem, requestType, requesterFeedback, resourceRequestItemId, roleLevelApproval, roleLevelApprovalCount, roleLevelApprovalItems, showDefaultResourceImage, type);
+    return Objects.hash(appDisplayName, applyToPerms, approvalFormId, canRequestThisForOthers, changeExpiration, currentApprovalStep, decision, deleted, description, displayName, effectiveDate, expirationDate, expirationRequest, flowdata, fulfillmentInstructions, hasRequiredField, hideResourceImage, imageUrl, instanceGuid, matchesFilter, originalItemDisplayName, originalRequestItem, params, permType, reason, recipient, recipientAccountDeleted, recipientAccountName, recipientAccountUniqueId, recipientDeleted, recipientDisplayName, requestFormId, requestItem, requestType, requesterFeedback, resourceRequestId, resourceRequestItemId, roleLevelApproval, roleLevelApprovalCount, roleLevelApprovalItems, selectedAccounts, showDefaultResourceImage, type);
   }
 
 
@@ -994,8 +1183,10 @@ public class RequestItem {
     sb.append("class RequestItem {\n");
     
     sb.append("    appDisplayName: ").append(toIndentedString(appDisplayName)).append("\n");
+    sb.append("    applyToPerms: ").append(toIndentedString(applyToPerms)).append("\n");
     sb.append("    approvalFormId: ").append(toIndentedString(approvalFormId)).append("\n");
     sb.append("    canRequestThisForOthers: ").append(toIndentedString(canRequestThisForOthers)).append("\n");
+    sb.append("    changeExpiration: ").append(toIndentedString(changeExpiration)).append("\n");
     sb.append("    currentApprovalStep: ").append(toIndentedString(currentApprovalStep)).append("\n");
     sb.append("    decision: ").append(toIndentedString(decision)).append("\n");
     sb.append("    deleted: ").append(toIndentedString(deleted)).append("\n");
@@ -1003,6 +1194,7 @@ public class RequestItem {
     sb.append("    displayName: ").append(toIndentedString(displayName)).append("\n");
     sb.append("    effectiveDate: ").append(toIndentedString(effectiveDate)).append("\n");
     sb.append("    expirationDate: ").append(toIndentedString(expirationDate)).append("\n");
+    sb.append("    expirationRequest: ").append(toIndentedString(expirationRequest)).append("\n");
     sb.append("    flowdata: ").append(toIndentedString(flowdata)).append("\n");
     sb.append("    fulfillmentInstructions: ").append(toIndentedString(fulfillmentInstructions)).append("\n");
     sb.append("    hasRequiredField: ").append(toIndentedString(hasRequiredField)).append("\n");
@@ -1016,16 +1208,21 @@ public class RequestItem {
     sb.append("    permType: ").append(toIndentedString(permType)).append("\n");
     sb.append("    reason: ").append(toIndentedString(reason)).append("\n");
     sb.append("    recipient: ").append(toIndentedString(recipient)).append("\n");
+    sb.append("    recipientAccountDeleted: ").append(toIndentedString(recipientAccountDeleted)).append("\n");
+    sb.append("    recipientAccountName: ").append(toIndentedString(recipientAccountName)).append("\n");
+    sb.append("    recipientAccountUniqueId: ").append(toIndentedString(recipientAccountUniqueId)).append("\n");
     sb.append("    recipientDeleted: ").append(toIndentedString(recipientDeleted)).append("\n");
     sb.append("    recipientDisplayName: ").append(toIndentedString(recipientDisplayName)).append("\n");
     sb.append("    requestFormId: ").append(toIndentedString(requestFormId)).append("\n");
     sb.append("    requestItem: ").append(toIndentedString(requestItem)).append("\n");
     sb.append("    requestType: ").append(toIndentedString(requestType)).append("\n");
     sb.append("    requesterFeedback: ").append(toIndentedString(requesterFeedback)).append("\n");
+    sb.append("    resourceRequestId: ").append(toIndentedString(resourceRequestId)).append("\n");
     sb.append("    resourceRequestItemId: ").append(toIndentedString(resourceRequestItemId)).append("\n");
     sb.append("    roleLevelApproval: ").append(toIndentedString(roleLevelApproval)).append("\n");
     sb.append("    roleLevelApprovalCount: ").append(toIndentedString(roleLevelApprovalCount)).append("\n");
     sb.append("    roleLevelApprovalItems: ").append(toIndentedString(roleLevelApprovalItems)).append("\n");
+    sb.append("    selectedAccounts: ").append(toIndentedString(selectedAccounts)).append("\n");
     sb.append("    showDefaultResourceImage: ").append(toIndentedString(showDefaultResourceImage)).append("\n");
     sb.append("    type: ").append(toIndentedString(type)).append("\n");
     sb.append("}");

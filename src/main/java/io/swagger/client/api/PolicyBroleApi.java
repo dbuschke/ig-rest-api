@@ -1,8 +1,8 @@
 /*
  * Identity Governance REST APIs
- * Welcome to the NetIQ Identity Governance API Documentation page. This is the API reference for the NetIQ Identity Governance REST API.  Below you will see the main sections of the API. Click each section in order to see the endpoints that are available in that category as well as information related to which Identity Governance roles have access. Global Administrators are not included in the accepted roles list for each API however they have access to all APIs. Those APIs that do not display a list of accepted roles are accessible for any role.  The NetIQ Identity Governance REST API uses the OAuth2 protocol for authentication. Therefore, in order to make any of these calls, you must obtain a token, and include that token in the Authentication header.  OSP = One SSO Provider   NAM = NetIQ Access Manager  **Note:** The various OAuth 2.0 endpoints described below can also be obtained from the OAuth/OpenID Connect provider 'metadata' found at the following location relative to the 'issuer URI':`[issuer-uri]/.well-known/openid-configuration`  Issuer URIs:  *   OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2 *   NAM: https://server/nidp/oauth/nam  See [Open ID Connect Discovery 1.0](\"https://openid.net/specs/openid-connect-discovery-1_0.html\") for more information.  Obtaining the Initial Access Token ==================================  ### OAuth 2.0 Resource Owner Password Credentials Grant Request  1.  Determine the OAuth 2.0 token endpoint for the authorization server:     1.  OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2/token     2.  NAM: https://server/nidp/oauth/nam/token 2.  Obtain the Identity Governance 'iac' client identifier and client secret.     1.  OSP         1.  The identifier is usually _iac_ but can be changed with the configutil or configupdate utilities.         2.  The client secret is the 'service password' specified during installation but can be changed with the configutil or configupdate utilities.     2.  NAM         1.  Open the Access Manager administrator console in a browser and navigate to the _OAuth & OpenID Connect_ tab on the _IDPCluster_ page. Select the _Client Applications_ heading.         2.  Click on the 'View' icon under the 'Actions' heading for the _Client Application_ named _iac_.         3.  Click on _Click to reveal_.         4.  Copy the _Client ID_ value and the _Client Secret_ value.         5.  Ensure that _Resource Owner Credentials_ appears in the _Grants Required_ list. If not, edit the client definition and check the _Resource Owner Credentials_ box, save the client definition, and update the IDP. 3.  Obtain the user identifier and password of a user with the required privilege for the desired API endpoint. 4.  Create an HTTP POST request with the following characteristics (see [RFC 6749 section 4.3.1](\"https://tools.ietf.org/html/rfc6749#section-4.3.1\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body: `grant_type=password&username=<user-id>&password=[user-password]&client_id=[iac-client-id]&client_secret=[iac-client-secret]`where the square-bracket-delimited names are replaced with the client and user values obtained in the steps above.  Also note the '**& amp;**' shown in this and other POST payload examples should actually be '**&**'. 5.  Issue the request to the OAuth 2.0 token endpoint. 6.  The JSON response will be similar to the following (see [RFC 6749 section 4.3.3](\"https://tools.ietf.org/html/rfc6749#section-4.3.3\")):`{ \"access_token\": \"eyJraWQiOiI0...\", \"token_type\": \"bearer\", \"expires_in\": 119, \"refresh_token\": \"eyJhbGciOiJ...\" }` 7.  When issuing a REST request to an Identity Governance endpoint pass the access token value using an HTTP _Bearer_ authorization header (see [RFC 6750 section 2.1](\"https://tools.ietf.org/html/rfc6750#section-2.1\")):`Authorization: Bearer [access-token]`  Refresh Tokens ==============  If the authorization server is configured to return an OAuth 2.0 refresh token in the JSON result of the Resource Owner Password Credential Grant request then the refresh token should be used to obtain additional access tokens after the currently-valid access token expires.  In addition, each refresh token issued on behalf of a user causes a 'revocation entry' to be stored in an attribute on the user's LDAP object. Obtaining many refresh tokens without revoking previously obtained, unexpired refresh tokens will eventually exceed the capacity of the attribute on the user's LDAP object and will result in errors.  Therefore, if a refresh token is obtained it must be revoked after it is no longer needed.  ### Access Token Request  1.  Create an HTTP POST request with the following characteristics (see [RFC 6749 section 6](\"https://tools.ietf.org/html/rfc6749#section-6\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body: `grant_type=refresh_token&refresh_token=<refresh-token>&client_id=<iac-clientid>&client_secret=[iac-client-secret]`where the square-bracket-delimited names are replaced with the obvious values. 2.  Issue the request to the OAuth 2.0 token endpoint. 3.  The JSON result will be similar to`{ \"access_token\": \"eyJraWQiOiI0...\", \"token_type\": \"bearer\", \"expires_in\": 119 }` 4.  Use the new access token value in requests to Identity Governance REST endpoints as described above.  ### Refresh Token Revocation Request  1.  Determine the OAuth 2.0 token revocation endpoint for the authorization server:     1.  OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2/revoke     2.  NAM: https://server/nidp/oauth/nam/revoke 2.  Create an HTTP POST request with the following characteristics (see [RFC 7009 section 2.1](\"https://tools.ietf.org/html/rfc7009#section-2.1\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body:`token=[refresh-token]&client_id=[iac-client-id]&client_secret=[iac-client-secret]` 3.  Issue the request to the OAuth 2.0 revocation endpoint.      As a shortcut to learning the API, run Identity Governance in a browser with developer tools enabled and watch the network traffic between the browser and the server.  * * *
+ * Welcome to the NetIQ Identity Governance API Documentation page. This is the API reference for the NetIQ Identity Governance REST API.  Below you will see the main sections of the API. Click each section in order to see the endpoints that are available in that category as well as information related to which Identity Governance roles have access. Global Administrators are not included in the accepted roles list for each API however they have access to all APIs. Those APIs that do not display a list of accepted roles are accessible for any role. An authenticated user is one that has the RT_ROLE_USER permission. The Operations Administrator SaaS is an example of a user that does not have the RT_ROLE_USER permission.  The NetIQ Identity Governance REST API uses the OAuth2 protocol for authentication. Therefore, in order to make any of these calls, you must obtain a token, and include that token in the Authentication header.  OSP = One SSO Provider   NAM = NetIQ Access Manager  **Note:** The various OAuth 2.0 endpoints described below can also be obtained from the OAuth/OpenID Connect provider 'metadata' found at the following location relative to the 'issuer URI':`[issuer-uri]/.well-known/openid-configuration`  Issuer URIs:  *   OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2 *   NAM: https://server/nidp/oauth/nam  See [Open ID Connect Discovery 1.0](\"https://openid.net/specs/openid-connect-discovery-1_0.html\") for more information.  Obtaining the Initial Access Token ==================================  ### OAuth 2.0 Resource Owner Password Credentials Grant Request  1.  Determine the OAuth 2.0 token endpoint for the authorization server:     1.  OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2/token     2.  NAM: https://server/nidp/oauth/nam/token 2.  Obtain the Identity Governance 'iac' client identifier and client secret.     1.  OSP         1.  The identifier is usually _iac_ but can be changed with the configutil or configupdate utilities.         2.  The client secret is the 'service password' specified during installation but can be changed with the configutil or configupdate utilities.     2.  NAM         1.  Open the Access Manager administrator console in a browser and navigate to the _OAuth & OpenID Connect_ tab on the _IDPCluster_ page. Select the _Client Applications_ heading.         2.  Click on the 'View' icon under the 'Actions' heading for the _Client Application_ named _iac_.         3.  Click on _Click to reveal_.         4.  Copy the _Client ID_ value and the _Client Secret_ value.         5.  Ensure that _Resource Owner Credentials_ appears in the _Grants Required_ list. If not, edit the client definition and check the _Resource Owner Credentials_ box, save the client definition, and update the IDP. 3.  Obtain the user identifier and password of a user with the required privilege for the desired API endpoint. 4.  Create an HTTP POST request with the following characteristics (see [RFC 6749 section 4.3.1](\"https://tools.ietf.org/html/rfc6749#section-4.3.1\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body: `grant_type=password&username=<user-id>&password=[user-password]&client_id=[iac-client-id]&client_secret=[iac-client-secret]`where the square-bracket-delimited names are replaced with the client and user values obtained in the steps above.  Also note the '**& amp;**' shown in this and other POST payload examples should actually be '**&**'. 5.  Issue the request to the OAuth 2.0 token endpoint. 6.  The JSON response will be similar to the following (see [RFC 6749 section 4.3.3](\"https://tools.ietf.org/html/rfc6749#section-4.3.3\")):`{ \"access_token\": \"eyJraWQiOiI0...\", \"token_type\": \"bearer\", \"expires_in\": 119, \"refresh_token\": \"eyJhbGciOiJ...\" }` 7.  When issuing a REST request to an Identity Governance endpoint pass the access token value using an HTTP _Bearer_ authorization header (see [RFC 6750 section 2.1](\"https://tools.ietf.org/html/rfc6750#section-2.1\")):`Authorization: Bearer [access-token]`  Refresh Tokens ==============  If the authorization server is configured to return an OAuth 2.0 refresh token in the JSON result of the Resource Owner Password Credential Grant request then the refresh token should be used to obtain additional access tokens after the currently-valid access token expires.  In addition, each refresh token issued on behalf of a user causes a 'revocation entry' to be stored in an attribute on the user's LDAP object. Obtaining many refresh tokens without revoking previously obtained, unexpired refresh tokens will eventually exceed the capacity of the attribute on the user's LDAP object and will result in errors.  Therefore, if a refresh token is obtained it must be revoked after it is no longer needed.  ### Access Token Request  1.  Create an HTTP POST request with the following characteristics (see [RFC 6749 section 6](\"https://tools.ietf.org/html/rfc6749#section-6\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body: `grant_type=refresh_token&refresh_token=<refresh-token>&client_id=<iac-clientid>&client_secret=[iac-client-secret]`where the square-bracket-delimited names are replaced with the obvious values. 2.  Issue the request to the OAuth 2.0 token endpoint. 3.  The JSON result will be similar to`{ \"access_token\": \"eyJraWQiOiI0...\", \"token_type\": \"bearer\", \"expires_in\": 119 }` 4.  Use the new access token value in requests to Identity Governance REST endpoints as described above.  ### Refresh Token Revocation Request  1.  Determine the OAuth 2.0 token revocation endpoint for the authorization server:     1.  OSP: http(s)://server(:port)/osp/a/idm/auth/oauth2/revoke     2.  NAM: https://server/nidp/oauth/nam/revoke 2.  Create an HTTP POST request with the following characteristics (see [RFC 7009 section 2.1](\"https://tools.ietf.org/html/rfc7009#section-2.1\"))     1.  Content-Type: application/x-www-form-urlencoded     2.  POST body:`token=[refresh-token]&client_id=[iac-client-id]&client_secret=[iac-client-secret]` 3.  Issue the request to the OAuth 2.0 revocation endpoint.      As a shortcut to learning the API, run Identity Governance in a browser with developer tools enabled and watch the network traffic between the browser and the server.  REST API and Data/Service Access Rights =======================================  The authenticated user may need two kinds of rights to invoke a REST API:  1. Authorization to call the API. 2. Permission(s) to access data returned by the API or to access services the API uses.  The user's roles are checked to see if they have the required rights.  As an example, suppose that John Jones is the user, and the REST API he wants to call is **GET /data/perms/authorizedby/2/causes**, and it requires a permission named **ViewAuthResourceInfo**.  If John Jones does not have the authorization to call the API he will get an error that looks like this:  `{     \"Fault\": {        \"Code\": {           \"Value\": \"Sender\",           \"Subcode\": {              \"Value\": \"RestApiUnAuthorized\"           }        },        \"Reason\": {           \"Text\": \"Denying access to /data/perms/authorizedby/2/causes for user John Jones.\"        }     } }`  If John Jones is allowed to call the REST API, but does not have the **ViewAuthResourceInfo** permission, he would get an error that looks like this:  `{     \"Fault\": {        \"Code\": {           \"Value\": \"Sender\",           \"Subcode\": {              \"Value\": \"UnauthorizedDataAccess\"           }        },        \"Reason\": {           \"Text\": \"Unauthorized data access attempt: User [John Jones] has no right [ViewAuthResourceInfo] for requested data.\",           \"Stack\": null        }     } }`  To determine what permissions a particular role has, you can query the OPS database.  For example, the query below returns all permissions for the **Fulfillment Administrator** role.  To get permissions for a different role, just change **'Fulfillment Administrator'** value to the name of the role you want:  ` SELECT distinct     ar.role_name as role_short_name,     ar.role_display_name as role_display_name,     ap.permission_name as permission_name FROM auth_role_mapping arm JOIN auth_role ar on ar.id = arm.auth_role JOIN auth_scope asp on asp.id = arm.auth_scope JOIN auth_permission ap on ap.id = arm.auth_perm WHERE     asp.rest_api_uri IS NULL     and ar.role_display_name = 'Fulfillment Administrator' order by ar.role_display_name, ap.permission_name `  * * *
  *
- * OpenAPI spec version: 3.7.3-202
+ * OpenAPI spec version: 4.2.0-644
  * 
  *
  * NOTE: This class is auto generated by the swagger code generator program.
@@ -147,7 +147,7 @@ public class PolicyBroleApi {
 
     /**
      * Match the mined business roles to existing roles
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The user attribute values to add as business role criteria (required)
      * @param mode - Mining mode - ATTR (Selected Attributes) or AUTO (Selected analytics) (optional, default to ATTR)
      * @return Burole
@@ -160,7 +160,7 @@ public class PolicyBroleApi {
 
     /**
      * Match the mined business roles to existing roles
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The user attribute values to add as business role criteria (required)
      * @param mode - Mining mode - ATTR (Selected Attributes) or AUTO (Selected analytics) (optional, default to ATTR)
      * @return ApiResponse&lt;Burole&gt;
@@ -174,7 +174,7 @@ public class PolicyBroleApi {
 
     /**
      * Match the mined business roles to existing roles (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The user attribute values to add as business role criteria (required)
      * @param mode - Mining mode - ATTR (Selected Attributes) or AUTO (Selected analytics) (optional, default to ATTR)
      * @param callback The callback to be executed when the API call finishes
@@ -211,12 +211,14 @@ public class PolicyBroleApi {
      * Build call for autoRequestResources
      * @param body Resources to request. (required)
      * @param q Quick search filter, used to search across all fields (optional)
+     * @param analyzeSoDs If true analyze SoDs and generate a report (optional, default to false)
+     * @param downloadInconsistencies If true download inconsistencies  If both analyzeSoDs and downloadInconsistencies are false, execute auto requests (optional, default to false)
      * @param progressListener Progress listener
      * @param progressRequestListener Progress request listener
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call autoRequestResourcesCall(Resources body, String q, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call autoRequestResourcesCall(Resources body, String q, Boolean analyzeSoDs, Boolean downloadInconsistencies, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = body;
         
         // create path and map variables
@@ -226,6 +228,10 @@ public class PolicyBroleApi {
         List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
         if (q != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("q", q));
+        if (analyzeSoDs != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("analyzeSoDs", analyzeSoDs));
+        if (downloadInconsistencies != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("downloadInconsistencies", downloadInconsistencies));
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
 
@@ -260,13 +266,13 @@ public class PolicyBroleApi {
     }
     
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call autoRequestResourcesValidateBeforeCall(Resources body, String q, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call autoRequestResourcesValidateBeforeCall(Resources body, String q, Boolean analyzeSoDs, Boolean downloadInconsistencies, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         // verify the required parameter 'body' is set
         if (body == null) {
             throw new ApiException("Missing the required parameter 'body' when calling autoRequestResources(Async)");
         }
         
-        com.squareup.okhttp.Call call = autoRequestResourcesCall(body, q, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = autoRequestResourcesCall(body, q, analyzeSoDs, downloadInconsistencies, progressListener, progressRequestListener);
         return call;
 
         
@@ -277,41 +283,47 @@ public class PolicyBroleApi {
 
     /**
      * Request resources that are inconsistent with either auto-grant or auto-revoke policy of business role authorizations.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Resources to request. (required)
      * @param q Quick search filter, used to search across all fields (optional)
+     * @param analyzeSoDs If true analyze SoDs and generate a report (optional, default to false)
+     * @param downloadInconsistencies If true download inconsistencies  If both analyzeSoDs and downloadInconsistencies are false, execute auto requests (optional, default to false)
      * @return Status
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public Status autoRequestResources(Resources body, String q) throws ApiException {
-        ApiResponse<Status> resp = autoRequestResourcesWithHttpInfo(body, q);
+    public Status autoRequestResources(Resources body, String q, Boolean analyzeSoDs, Boolean downloadInconsistencies) throws ApiException {
+        ApiResponse<Status> resp = autoRequestResourcesWithHttpInfo(body, q, analyzeSoDs, downloadInconsistencies);
         return resp.getData();
     }
 
     /**
      * Request resources that are inconsistent with either auto-grant or auto-revoke policy of business role authorizations.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Resources to request. (required)
      * @param q Quick search filter, used to search across all fields (optional)
+     * @param analyzeSoDs If true analyze SoDs and generate a report (optional, default to false)
+     * @param downloadInconsistencies If true download inconsistencies  If both analyzeSoDs and downloadInconsistencies are false, execute auto requests (optional, default to false)
      * @return ApiResponse&lt;Status&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Status> autoRequestResourcesWithHttpInfo(Resources body, String q) throws ApiException {
-        com.squareup.okhttp.Call call = autoRequestResourcesValidateBeforeCall(body, q, null, null);
+    public ApiResponse<Status> autoRequestResourcesWithHttpInfo(Resources body, String q, Boolean analyzeSoDs, Boolean downloadInconsistencies) throws ApiException {
+        com.squareup.okhttp.Call call = autoRequestResourcesValidateBeforeCall(body, q, analyzeSoDs, downloadInconsistencies, null, null);
         Type localVarReturnType = new TypeToken<Status>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
     /**
      * Request resources that are inconsistent with either auto-grant or auto-revoke policy of business role authorizations. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Resources to request. (required)
      * @param q Quick search filter, used to search across all fields (optional)
+     * @param analyzeSoDs If true analyze SoDs and generate a report (optional, default to false)
+     * @param downloadInconsistencies If true download inconsistencies  If both analyzeSoDs and downloadInconsistencies are false, execute auto requests (optional, default to false)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call autoRequestResourcesAsync(Resources body, String q, final ApiCallback<Status> callback) throws ApiException {
+    public com.squareup.okhttp.Call autoRequestResourcesAsync(Resources body, String q, Boolean analyzeSoDs, Boolean downloadInconsistencies, final ApiCallback<Status> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -332,7 +344,7 @@ public class PolicyBroleApi {
             };
         }
 
-        com.squareup.okhttp.Call call = autoRequestResourcesValidateBeforeCall(body, q, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = autoRequestResourcesValidateBeforeCall(body, q, analyzeSoDs, downloadInconsistencies, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<Status>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
@@ -713,6 +725,360 @@ public class PolicyBroleApi {
         return call;
     }
     /**
+     * Build call for changeInconsistenceyDetectionAlgorithmToAlternate
+     * @param progressListener Progress listener
+     * @param progressRequestListener Progress request listener
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public com.squareup.okhttp.Call changeInconsistenceyDetectionAlgorithmToAlternateCall(final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        Object localVarPostBody = null;
+        
+        // create path and map variables
+        String localVarPath = "/policy/brole/inconsistencydetections/algorithm/alternate";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) localVarHeaderParams.put("Accept", localVarAccept);
+
+        final String[] localVarContentTypes = {
+            
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        if(progressListener != null) {
+            apiClient.getHttpClient().networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
+                @Override
+                public com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
+                    com.squareup.okhttp.Response originalResponse = chain.proceed(chain.request());
+                    return originalResponse.newBuilder()
+                    .body(new ProgressResponseBody(originalResponse.body(), progressListener))
+                    .build();
+                }
+            });
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return apiClient.buildCall(localVarPath, "PUT", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
+    }
+    
+    @SuppressWarnings("rawtypes")
+    private com.squareup.okhttp.Call changeInconsistenceyDetectionAlgorithmToAlternateValidateBeforeCall(final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        
+        com.squareup.okhttp.Call call = changeInconsistenceyDetectionAlgorithmToAlternateCall(progressListener, progressRequestListener);
+        return call;
+
+        
+        
+        
+        
+    }
+
+    /**
+     * Change the inconsistency detection algorithm to the alternate algorithm.
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator 
+     * @return Status
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public Status changeInconsistenceyDetectionAlgorithmToAlternate() throws ApiException {
+        ApiResponse<Status> resp = changeInconsistenceyDetectionAlgorithmToAlternateWithHttpInfo();
+        return resp.getData();
+    }
+
+    /**
+     * Change the inconsistency detection algorithm to the alternate algorithm.
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator 
+     * @return ApiResponse&lt;Status&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<Status> changeInconsistenceyDetectionAlgorithmToAlternateWithHttpInfo() throws ApiException {
+        com.squareup.okhttp.Call call = changeInconsistenceyDetectionAlgorithmToAlternateValidateBeforeCall(null, null);
+        Type localVarReturnType = new TypeToken<Status>(){}.getType();
+        return apiClient.execute(call, localVarReturnType);
+    }
+
+    /**
+     * Change the inconsistency detection algorithm to the alternate algorithm. (asynchronously)
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator 
+     * @param callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     */
+    public com.squareup.okhttp.Call changeInconsistenceyDetectionAlgorithmToAlternateAsync(final ApiCallback<Status> callback) throws ApiException {
+
+        ProgressResponseBody.ProgressListener progressListener = null;
+        ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
+
+        if (callback != null) {
+            progressListener = new ProgressResponseBody.ProgressListener() {
+                @Override
+                public void update(long bytesRead, long contentLength, boolean done) {
+                    callback.onDownloadProgress(bytesRead, contentLength, done);
+                }
+            };
+
+            progressRequestListener = new ProgressRequestBody.ProgressRequestListener() {
+                @Override
+                public void onRequestProgress(long bytesWritten, long contentLength, boolean done) {
+                    callback.onUploadProgress(bytesWritten, contentLength, done);
+                }
+            };
+        }
+
+        com.squareup.okhttp.Call call = changeInconsistenceyDetectionAlgorithmToAlternateValidateBeforeCall(progressListener, progressRequestListener);
+        Type localVarReturnType = new TypeToken<Status>(){}.getType();
+        apiClient.executeAsync(call, localVarReturnType, callback);
+        return call;
+    }
+    /**
+     * Build call for changeInconsistenceyDetectionAlgorithmToDefault
+     * @param progressListener Progress listener
+     * @param progressRequestListener Progress request listener
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public com.squareup.okhttp.Call changeInconsistenceyDetectionAlgorithmToDefaultCall(final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        Object localVarPostBody = null;
+        
+        // create path and map variables
+        String localVarPath = "/policy/brole/inconsistencydetections/algorithm/default";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) localVarHeaderParams.put("Accept", localVarAccept);
+
+        final String[] localVarContentTypes = {
+            
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        if(progressListener != null) {
+            apiClient.getHttpClient().networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
+                @Override
+                public com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
+                    com.squareup.okhttp.Response originalResponse = chain.proceed(chain.request());
+                    return originalResponse.newBuilder()
+                    .body(new ProgressResponseBody(originalResponse.body(), progressListener))
+                    .build();
+                }
+            });
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return apiClient.buildCall(localVarPath, "PUT", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
+    }
+    
+    @SuppressWarnings("rawtypes")
+    private com.squareup.okhttp.Call changeInconsistenceyDetectionAlgorithmToDefaultValidateBeforeCall(final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        
+        com.squareup.okhttp.Call call = changeInconsistenceyDetectionAlgorithmToDefaultCall(progressListener, progressRequestListener);
+        return call;
+
+        
+        
+        
+        
+    }
+
+    /**
+     * Change the inconsistency detection algorithm to the default algorithm.
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator 
+     * @return Status
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public Status changeInconsistenceyDetectionAlgorithmToDefault() throws ApiException {
+        ApiResponse<Status> resp = changeInconsistenceyDetectionAlgorithmToDefaultWithHttpInfo();
+        return resp.getData();
+    }
+
+    /**
+     * Change the inconsistency detection algorithm to the default algorithm.
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator 
+     * @return ApiResponse&lt;Status&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<Status> changeInconsistenceyDetectionAlgorithmToDefaultWithHttpInfo() throws ApiException {
+        com.squareup.okhttp.Call call = changeInconsistenceyDetectionAlgorithmToDefaultValidateBeforeCall(null, null);
+        Type localVarReturnType = new TypeToken<Status>(){}.getType();
+        return apiClient.execute(call, localVarReturnType);
+    }
+
+    /**
+     * Change the inconsistency detection algorithm to the default algorithm. (asynchronously)
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator 
+     * @param callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     */
+    public com.squareup.okhttp.Call changeInconsistenceyDetectionAlgorithmToDefaultAsync(final ApiCallback<Status> callback) throws ApiException {
+
+        ProgressResponseBody.ProgressListener progressListener = null;
+        ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
+
+        if (callback != null) {
+            progressListener = new ProgressResponseBody.ProgressListener() {
+                @Override
+                public void update(long bytesRead, long contentLength, boolean done) {
+                    callback.onDownloadProgress(bytesRead, contentLength, done);
+                }
+            };
+
+            progressRequestListener = new ProgressRequestBody.ProgressRequestListener() {
+                @Override
+                public void onRequestProgress(long bytesWritten, long contentLength, boolean done) {
+                    callback.onUploadProgress(bytesWritten, contentLength, done);
+                }
+            };
+        }
+
+        com.squareup.okhttp.Call call = changeInconsistenceyDetectionAlgorithmToDefaultValidateBeforeCall(progressListener, progressRequestListener);
+        Type localVarReturnType = new TypeToken<Status>(){}.getType();
+        apiClient.executeAsync(call, localVarReturnType, callback);
+        return call;
+    }
+    /**
+     * Build call for changeInconsistenceyDetectionCheckPotentialEnabled
+     * @param enable Flag indicating whether to enable (true) or disable (false) the checking for potential inconsistencies when  doing inconsistency detection. (optional, default to true)
+     * @param progressListener Progress listener
+     * @param progressRequestListener Progress request listener
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public com.squareup.okhttp.Call changeInconsistenceyDetectionCheckPotentialEnabledCall(Boolean enable, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        Object localVarPostBody = null;
+        
+        // create path and map variables
+        String localVarPath = "/policy/brole/inconsistencydetections/checkpotential";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        if (enable != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("enable", enable));
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) localVarHeaderParams.put("Accept", localVarAccept);
+
+        final String[] localVarContentTypes = {
+            
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        if(progressListener != null) {
+            apiClient.getHttpClient().networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
+                @Override
+                public com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
+                    com.squareup.okhttp.Response originalResponse = chain.proceed(chain.request());
+                    return originalResponse.newBuilder()
+                    .body(new ProgressResponseBody(originalResponse.body(), progressListener))
+                    .build();
+                }
+            });
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return apiClient.buildCall(localVarPath, "PUT", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
+    }
+    
+    @SuppressWarnings("rawtypes")
+    private com.squareup.okhttp.Call changeInconsistenceyDetectionCheckPotentialEnabledValidateBeforeCall(Boolean enable, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        
+        com.squareup.okhttp.Call call = changeInconsistenceyDetectionCheckPotentialEnabledCall(enable, progressListener, progressRequestListener);
+        return call;
+
+        
+        
+        
+        
+    }
+
+    /**
+     * Change the inconsistency detection check potential flag.
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator 
+     * @param enable Flag indicating whether to enable (true) or disable (false) the checking for potential inconsistencies when  doing inconsistency detection. (optional, default to true)
+     * @return Status
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public Status changeInconsistenceyDetectionCheckPotentialEnabled(Boolean enable) throws ApiException {
+        ApiResponse<Status> resp = changeInconsistenceyDetectionCheckPotentialEnabledWithHttpInfo(enable);
+        return resp.getData();
+    }
+
+    /**
+     * Change the inconsistency detection check potential flag.
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator 
+     * @param enable Flag indicating whether to enable (true) or disable (false) the checking for potential inconsistencies when  doing inconsistency detection. (optional, default to true)
+     * @return ApiResponse&lt;Status&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<Status> changeInconsistenceyDetectionCheckPotentialEnabledWithHttpInfo(Boolean enable) throws ApiException {
+        com.squareup.okhttp.Call call = changeInconsistenceyDetectionCheckPotentialEnabledValidateBeforeCall(enable, null, null);
+        Type localVarReturnType = new TypeToken<Status>(){}.getType();
+        return apiClient.execute(call, localVarReturnType);
+    }
+
+    /**
+     * Change the inconsistency detection check potential flag. (asynchronously)
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator 
+     * @param enable Flag indicating whether to enable (true) or disable (false) the checking for potential inconsistencies when  doing inconsistency detection. (optional, default to true)
+     * @param callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     */
+    public com.squareup.okhttp.Call changeInconsistenceyDetectionCheckPotentialEnabledAsync(Boolean enable, final ApiCallback<Status> callback) throws ApiException {
+
+        ProgressResponseBody.ProgressListener progressListener = null;
+        ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
+
+        if (callback != null) {
+            progressListener = new ProgressResponseBody.ProgressListener() {
+                @Override
+                public void update(long bytesRead, long contentLength, boolean done) {
+                    callback.onDownloadProgress(bytesRead, contentLength, done);
+                }
+            };
+
+            progressRequestListener = new ProgressRequestBody.ProgressRequestListener() {
+                @Override
+                public void onRequestProgress(long bytesWritten, long contentLength, boolean done) {
+                    callback.onUploadProgress(bytesWritten, contentLength, done);
+                }
+            };
+        }
+
+        com.squareup.okhttp.Call call = changeInconsistenceyDetectionCheckPotentialEnabledValidateBeforeCall(enable, progressListener, progressRequestListener);
+        Type localVarReturnType = new TypeToken<Status>(){}.getType();
+        apiClient.executeAsync(call, localVarReturnType, callback);
+        return call;
+    }
+    /**
      * Build call for compareMembers
      * @param id1 - One of the business roles to compare (optional)
      * @param id2 - One of the business roles to compare (optional)
@@ -921,7 +1287,7 @@ public class PolicyBroleApi {
             });
         }
 
-        String[] localVarAuthNames = new String[] { };
+        String[] localVarAuthNames = new String[] {  };
         return apiClient.buildCall(localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
     }
     
@@ -943,7 +1309,7 @@ public class PolicyBroleApi {
 
     /**
      * Create a business role.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role to create. (required)
      * @return Burole
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -955,7 +1321,7 @@ public class PolicyBroleApi {
 
     /**
      * Create a business role.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role to create. (required)
      * @return ApiResponse&lt;Burole&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -968,7 +1334,7 @@ public class PolicyBroleApi {
 
     /**
      * Create a business role. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role to create. (required)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
@@ -1070,7 +1436,7 @@ public class PolicyBroleApi {
 
     /**
      * Create the mined business roles
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The user attribute values to add as business role criteria (required)
      * @param mode - Mining mode - ATTR (Selected Attributes) or AUTO (Selected analytics) (optional, default to ATTR)
      * @return Burole
@@ -1083,7 +1449,7 @@ public class PolicyBroleApi {
 
     /**
      * Create the mined business roles
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The user attribute values to add as business role criteria (required)
      * @param mode - Mining mode - ATTR (Selected Attributes) or AUTO (Selected analytics) (optional, default to ATTR)
      * @return ApiResponse&lt;Burole&gt;
@@ -1097,7 +1463,7 @@ public class PolicyBroleApi {
 
     /**
      * Create the mined business roles (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The user attribute values to add as business role criteria (required)
      * @param mode - Mining mode - ATTR (Selected Attributes) or AUTO (Selected analytics) (optional, default to ATTR)
      * @param callback The callback to be executed when the API call finishes
@@ -1861,7 +2227,7 @@ public class PolicyBroleApi {
 
     /**
      * Preview what would change if the specified business role were to be published.
-     * The preview information returned includes various counts.  Number of new users that would become members of the business role, number of users that would lose membership in the business role, etc.&lt;br/&gt;Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * The preview information returned includes various counts.  Number of new users that would become members of the business role, number of users that would lose membership in the business role, etc.&lt;br/&gt;Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Business role node which defines what the business role would look like if it were to be published. (required)
      * @param countDetail This specifies a particular count that the user would like more information on.  It may be one of the following: &lt;ul&gt;                         &lt;li&gt;newMembers.  This will return the list of new members.&lt;/li&gt;    &lt;li&gt;deletedMembers.  This will return the list of                          deleted members.&lt;/li&gt;    &lt;li&gt;newPermAuths.  This will return the list of new permission authorizations.&lt;/li&gt;                           &lt;li&gt;deletedPermAuths.  This will return the list of deleted permission authorizations.&lt;/li&gt;    &lt;li&gt;newRoleAuths.                           This will return the list of new technical role authorizations.&lt;/li&gt;    &lt;li&gt;deletedRoleAuths.  This will return the list                           of deleted technical role authorizations.&lt;/li&gt;    &lt;li&gt;newAppAuths.  This will return the list of new application                         authorizations.&lt;/li&gt;    &lt;li&gt;deletedAppAuths.  This will return the list of deleted application authorizations.&lt;/li&gt;                         &lt;li&gt;grantPermRequests.  This will return the list of permission grant requests.&lt;/li&gt;    &lt;li&gt;revokePermRequests.                         This will return the list of permission revoke requests.&lt;/li&gt;    &lt;li&gt;grantAppRequests.  This will return the list of                         application grant requests.&lt;/li&gt;    &lt;li&gt;revokeAppRequests.  This will return the list of application revoke                         requests.&lt;/li&gt;                         &lt;/ul&gt; (optional)
      * @param size Number of results to return, used for paging.  This is only used if the countDetail query parameter is set. (optional, default to 0)
@@ -1878,7 +2244,7 @@ public class PolicyBroleApi {
 
     /**
      * Preview what would change if the specified business role were to be published.
-     * The preview information returned includes various counts.  Number of new users that would become members of the business role, number of users that would lose membership in the business role, etc.&lt;br/&gt;Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * The preview information returned includes various counts.  Number of new users that would become members of the business role, number of users that would lose membership in the business role, etc.&lt;br/&gt;Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Business role node which defines what the business role would look like if it were to be published. (required)
      * @param countDetail This specifies a particular count that the user would like more information on.  It may be one of the following: &lt;ul&gt;                         &lt;li&gt;newMembers.  This will return the list of new members.&lt;/li&gt;    &lt;li&gt;deletedMembers.  This will return the list of                          deleted members.&lt;/li&gt;    &lt;li&gt;newPermAuths.  This will return the list of new permission authorizations.&lt;/li&gt;                           &lt;li&gt;deletedPermAuths.  This will return the list of deleted permission authorizations.&lt;/li&gt;    &lt;li&gt;newRoleAuths.                           This will return the list of new technical role authorizations.&lt;/li&gt;    &lt;li&gt;deletedRoleAuths.  This will return the list                           of deleted technical role authorizations.&lt;/li&gt;    &lt;li&gt;newAppAuths.  This will return the list of new application                         authorizations.&lt;/li&gt;    &lt;li&gt;deletedAppAuths.  This will return the list of deleted application authorizations.&lt;/li&gt;                         &lt;li&gt;grantPermRequests.  This will return the list of permission grant requests.&lt;/li&gt;    &lt;li&gt;revokePermRequests.                         This will return the list of permission revoke requests.&lt;/li&gt;    &lt;li&gt;grantAppRequests.  This will return the list of                         application grant requests.&lt;/li&gt;    &lt;li&gt;revokeAppRequests.  This will return the list of application revoke                         requests.&lt;/li&gt;                         &lt;/ul&gt; (optional)
      * @param size Number of results to return, used for paging.  This is only used if the countDetail query parameter is set. (optional, default to 0)
@@ -1896,7 +2262,7 @@ public class PolicyBroleApi {
 
     /**
      * Preview what would change if the specified business role were to be published. (asynchronously)
-     * The preview information returned includes various counts.  Number of new users that would become members of the business role, number of users that would lose membership in the business role, etc.&lt;br/&gt;Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * The preview information returned includes various counts.  Number of new users that would become members of the business role, number of users that would lose membership in the business role, etc.&lt;br/&gt;Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Business role node which defines what the business role would look like if it were to be published. (required)
      * @param countDetail This specifies a particular count that the user would like more information on.  It may be one of the following: &lt;ul&gt;                         &lt;li&gt;newMembers.  This will return the list of new members.&lt;/li&gt;    &lt;li&gt;deletedMembers.  This will return the list of                          deleted members.&lt;/li&gt;    &lt;li&gt;newPermAuths.  This will return the list of new permission authorizations.&lt;/li&gt;                           &lt;li&gt;deletedPermAuths.  This will return the list of deleted permission authorizations.&lt;/li&gt;    &lt;li&gt;newRoleAuths.                           This will return the list of new technical role authorizations.&lt;/li&gt;    &lt;li&gt;deletedRoleAuths.  This will return the list                           of deleted technical role authorizations.&lt;/li&gt;    &lt;li&gt;newAppAuths.  This will return the list of new application                         authorizations.&lt;/li&gt;    &lt;li&gt;deletedAppAuths.  This will return the list of deleted application authorizations.&lt;/li&gt;                         &lt;li&gt;grantPermRequests.  This will return the list of permission grant requests.&lt;/li&gt;    &lt;li&gt;revokePermRequests.                         This will return the list of permission revoke requests.&lt;/li&gt;    &lt;li&gt;grantAppRequests.  This will return the list of                         application grant requests.&lt;/li&gt;    &lt;li&gt;revokeAppRequests.  This will return the list of application revoke                         requests.&lt;/li&gt;                         &lt;/ul&gt; (optional)
      * @param size Number of results to return, used for paging.  This is only used if the countDetail query parameter is set. (optional, default to 0)
@@ -2456,7 +2822,7 @@ public class PolicyBroleApi {
 
     /**
      * Get the users associated with the given analysis and authorization type
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - Advanced search filter (required)
      * @param id - The analysis id (required)
      * @param size - Number of results to return, used for paging. (optional, default to 0)
@@ -2480,7 +2846,7 @@ public class PolicyBroleApi {
 
     /**
      * Get the users associated with the given analysis and authorization type
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - Advanced search filter (required)
      * @param id - The analysis id (required)
      * @param size - Number of results to return, used for paging. (optional, default to 0)
@@ -2505,7 +2871,7 @@ public class PolicyBroleApi {
 
     /**
      * Get the users associated with the given analysis and authorization type (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - Advanced search filter (required)
      * @param id - The analysis id (required)
      * @param size - Number of results to return, used for paging. (optional, default to 0)
@@ -2560,8 +2926,6 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @param progressListener Progress listener
@@ -2569,7 +2933,7 @@ public class PolicyBroleApi {
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call getAuthorizedAppEffectivenessCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call getAuthorizedAppEffectivenessCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = body;
         
         // create path and map variables
@@ -2590,10 +2954,6 @@ public class PolicyBroleApi {
         localVarQueryParams.addAll(apiClient.parameterToPair("indexFrom", indexFrom));
         if (size != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("size", size));
-        if (showUnfilteredCt != null)
-        localVarQueryParams.addAll(apiClient.parameterToPair("showUnfilteredCt", showUnfilteredCt));
-        if (showCt != null)
-        localVarQueryParams.addAll(apiClient.parameterToPair("showCt", showCt));
         if (q != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("q", q));
         if (qMatch != null)
@@ -2632,7 +2992,7 @@ public class PolicyBroleApi {
     }
     
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call getAuthorizedAppEffectivenessValidateBeforeCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call getAuthorizedAppEffectivenessValidateBeforeCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         // verify the required parameter 'body' is set
         if (body == null) {
             throw new ApiException("Missing the required parameter 'body' when calling getAuthorizedAppEffectiveness(Async)");
@@ -2642,7 +3002,7 @@ public class PolicyBroleApi {
             throw new ApiException("Missing the required parameter 'ID' when calling getAuthorizedAppEffectiveness(Async)");
         }
         
-        com.squareup.okhttp.Call call = getAuthorizedAppEffectivenessCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getAuthorizedAppEffectivenessCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch, progressListener, progressRequestListener);
         return call;
 
         
@@ -2653,7 +3013,7 @@ public class PolicyBroleApi {
 
     /**
      * Return effectiveness of the business role application authorization.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param ID Business role id (required)
@@ -2663,21 +3023,19 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @return Users
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public Users getAuthorizedAppEffectiveness(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch) throws ApiException {
-        ApiResponse<Users> resp = getAuthorizedAppEffectivenessWithHttpInfo(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch);
+    public Users getAuthorizedAppEffectiveness(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch) throws ApiException {
+        ApiResponse<Users> resp = getAuthorizedAppEffectivenessWithHttpInfo(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch);
         return resp.getData();
     }
 
     /**
      * Return effectiveness of the business role application authorization.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param ID Business role id (required)
@@ -2687,22 +3045,20 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @return ApiResponse&lt;Users&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Users> getAuthorizedAppEffectivenessWithHttpInfo(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch) throws ApiException {
-        com.squareup.okhttp.Call call = getAuthorizedAppEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, null, null);
+    public ApiResponse<Users> getAuthorizedAppEffectivenessWithHttpInfo(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch) throws ApiException {
+        com.squareup.okhttp.Call call = getAuthorizedAppEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch, null, null);
         Type localVarReturnType = new TypeToken<Users>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
     /**
      * Return effectiveness of the business role application authorization. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param ID Business role id (required)
@@ -2712,15 +3068,13 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call getAuthorizedAppEffectivenessAsync(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ApiCallback<Users> callback) throws ApiException {
+    public com.squareup.okhttp.Call getAuthorizedAppEffectivenessAsync(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch, final ApiCallback<Users> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -2741,7 +3095,7 @@ public class PolicyBroleApi {
             };
         }
 
-        com.squareup.okhttp.Call call = getAuthorizedAppEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getAuthorizedAppEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<Users>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
@@ -2757,8 +3111,6 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @param progressListener Progress listener
@@ -2766,7 +3118,7 @@ public class PolicyBroleApi {
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call getAuthorizedPermissionEffectivenessCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call getAuthorizedPermissionEffectivenessCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = body;
         
         // create path and map variables
@@ -2787,10 +3139,6 @@ public class PolicyBroleApi {
         localVarQueryParams.addAll(apiClient.parameterToPair("indexFrom", indexFrom));
         if (size != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("size", size));
-        if (showUnfilteredCt != null)
-        localVarQueryParams.addAll(apiClient.parameterToPair("showUnfilteredCt", showUnfilteredCt));
-        if (showCt != null)
-        localVarQueryParams.addAll(apiClient.parameterToPair("showCt", showCt));
         if (q != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("q", q));
         if (qMatch != null)
@@ -2829,7 +3177,7 @@ public class PolicyBroleApi {
     }
     
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call getAuthorizedPermissionEffectivenessValidateBeforeCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call getAuthorizedPermissionEffectivenessValidateBeforeCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         // verify the required parameter 'body' is set
         if (body == null) {
             throw new ApiException("Missing the required parameter 'body' when calling getAuthorizedPermissionEffectiveness(Async)");
@@ -2839,7 +3187,7 @@ public class PolicyBroleApi {
             throw new ApiException("Missing the required parameter 'ID' when calling getAuthorizedPermissionEffectiveness(Async)");
         }
         
-        com.squareup.okhttp.Call call = getAuthorizedPermissionEffectivenessCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getAuthorizedPermissionEffectivenessCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch, progressListener, progressRequestListener);
         return call;
 
         
@@ -2850,7 +3198,7 @@ public class PolicyBroleApi {
 
     /**
      * Return effectiveness of the business role permission authorizations
-     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param ID Business role id (required)
@@ -2860,21 +3208,19 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @return Permissions
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public Permissions getAuthorizedPermissionEffectiveness(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch) throws ApiException {
-        ApiResponse<Permissions> resp = getAuthorizedPermissionEffectivenessWithHttpInfo(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch);
+    public Permissions getAuthorizedPermissionEffectiveness(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch) throws ApiException {
+        ApiResponse<Permissions> resp = getAuthorizedPermissionEffectivenessWithHttpInfo(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch);
         return resp.getData();
     }
 
     /**
      * Return effectiveness of the business role permission authorizations
-     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param ID Business role id (required)
@@ -2884,22 +3230,20 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @return ApiResponse&lt;Permissions&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Permissions> getAuthorizedPermissionEffectivenessWithHttpInfo(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch) throws ApiException {
-        com.squareup.okhttp.Call call = getAuthorizedPermissionEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, null, null);
+    public ApiResponse<Permissions> getAuthorizedPermissionEffectivenessWithHttpInfo(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch) throws ApiException {
+        com.squareup.okhttp.Call call = getAuthorizedPermissionEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch, null, null);
         Type localVarReturnType = new TypeToken<Permissions>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
     /**
      * Return effectiveness of the business role permission authorizations (asynchronously)
-     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param ID Business role id (required)
@@ -2909,15 +3253,13 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call getAuthorizedPermissionEffectivenessAsync(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ApiCallback<Permissions> callback) throws ApiException {
+    public com.squareup.okhttp.Call getAuthorizedPermissionEffectivenessAsync(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch, final ApiCallback<Permissions> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -2938,7 +3280,7 @@ public class PolicyBroleApi {
             };
         }
 
-        com.squareup.okhttp.Call call = getAuthorizedPermissionEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getAuthorizedPermissionEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<Permissions>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
@@ -3023,7 +3365,7 @@ public class PolicyBroleApi {
 
     /**
      * Get information about roles that authorize a resource (permission, technical role, or account) for a given user.
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Auditor * Historical Review Owner * Historical Reviewer * Potential SoD Violation Step Approver * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner * SoD Step Approver 
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Auditor * Historical Review Owner * Historical Reviewer * Potential SoD Violation Step Approver * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner * Separation of Duties Administrator * Separation of Duties owner * SoD Step Approver 
      * @param uniqueUserId Unique user ID.  If non-null, will return information as it pertains to the user in the latest snapshot. (optional)
      * @param userId Long user ID.  Only used if uniqueUserId is null.  If used, will return information as it pertains to user specified by                          the id .  Use this if you want to get the information for a user in a particular snapshot. (optional)
      * @param uniqueResourceId Unique ID of the resource we are returning information on. (optional)
@@ -3040,7 +3382,7 @@ public class PolicyBroleApi {
 
     /**
      * Get information about roles that authorize a resource (permission, technical role, or account) for a given user.
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Auditor * Historical Review Owner * Historical Reviewer * Potential SoD Violation Step Approver * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner * SoD Step Approver 
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Auditor * Historical Review Owner * Historical Reviewer * Potential SoD Violation Step Approver * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner * Separation of Duties Administrator * Separation of Duties owner * SoD Step Approver 
      * @param uniqueUserId Unique user ID.  If non-null, will return information as it pertains to the user in the latest snapshot. (optional)
      * @param userId Long user ID.  Only used if uniqueUserId is null.  If used, will return information as it pertains to user specified by                          the id .  Use this if you want to get the information for a user in a particular snapshot. (optional)
      * @param uniqueResourceId Unique ID of the resource we are returning information on. (optional)
@@ -3058,7 +3400,7 @@ public class PolicyBroleApi {
 
     /**
      * Get information about roles that authorize a resource (permission, technical role, or account) for a given user. (asynchronously)
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Auditor * Historical Review Owner * Historical Reviewer * Potential SoD Violation Step Approver * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner * SoD Step Approver 
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Auditor * Historical Review Owner * Historical Reviewer * Potential SoD Violation Step Approver * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner * Separation of Duties Administrator * Separation of Duties owner * SoD Step Approver 
      * @param uniqueUserId Unique user ID.  If non-null, will return information as it pertains to the user in the latest snapshot. (optional)
      * @param userId Long user ID.  Only used if uniqueUserId is null.  If used, will return information as it pertains to user specified by                          the id .  Use this if you want to get the information for a user in a particular snapshot. (optional)
      * @param uniqueResourceId Unique ID of the resource we are returning information on. (optional)
@@ -3106,8 +3448,6 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @param progressListener Progress listener
@@ -3115,7 +3455,7 @@ public class PolicyBroleApi {
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call getAuthorizedRolesEffectivenessCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call getAuthorizedRolesEffectivenessCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = body;
         
         // create path and map variables
@@ -3136,10 +3476,6 @@ public class PolicyBroleApi {
         localVarQueryParams.addAll(apiClient.parameterToPair("indexFrom", indexFrom));
         if (size != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("size", size));
-        if (showUnfilteredCt != null)
-        localVarQueryParams.addAll(apiClient.parameterToPair("showUnfilteredCt", showUnfilteredCt));
-        if (showCt != null)
-        localVarQueryParams.addAll(apiClient.parameterToPair("showCt", showCt));
         if (q != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("q", q));
         if (qMatch != null)
@@ -3178,7 +3514,7 @@ public class PolicyBroleApi {
     }
     
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call getAuthorizedRolesEffectivenessValidateBeforeCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call getAuthorizedRolesEffectivenessValidateBeforeCall(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         // verify the required parameter 'body' is set
         if (body == null) {
             throw new ApiException("Missing the required parameter 'body' when calling getAuthorizedRolesEffectiveness(Async)");
@@ -3188,7 +3524,7 @@ public class PolicyBroleApi {
             throw new ApiException("Missing the required parameter 'ID' when calling getAuthorizedRolesEffectiveness(Async)");
         }
         
-        com.squareup.okhttp.Call call = getAuthorizedRolesEffectivenessCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getAuthorizedRolesEffectivenessCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch, progressListener, progressRequestListener);
         return call;
 
         
@@ -3199,7 +3535,7 @@ public class PolicyBroleApi {
 
     /**
      * Return effectiveness of the business role technical role authorization.
-     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param ID Business role id (required)
@@ -3209,21 +3545,19 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @return Users
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public Users getAuthorizedRolesEffectiveness(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch) throws ApiException {
-        ApiResponse<Users> resp = getAuthorizedRolesEffectivenessWithHttpInfo(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch);
+    public Users getAuthorizedRolesEffectiveness(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch) throws ApiException {
+        ApiResponse<Users> resp = getAuthorizedRolesEffectivenessWithHttpInfo(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch);
         return resp.getData();
     }
 
     /**
      * Return effectiveness of the business role technical role authorization.
-     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param ID Business role id (required)
@@ -3233,22 +3567,20 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @return ApiResponse&lt;Users&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Users> getAuthorizedRolesEffectivenessWithHttpInfo(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch) throws ApiException {
-        com.squareup.okhttp.Call call = getAuthorizedRolesEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, null, null);
+    public ApiResponse<Users> getAuthorizedRolesEffectivenessWithHttpInfo(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch) throws ApiException {
+        com.squareup.okhttp.Call call = getAuthorizedRolesEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch, null, null);
         Type localVarReturnType = new TypeToken<Users>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
     /**
      * Return effectiveness of the business role technical role authorization. (asynchronously)
-     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param ID Business role id (required)
@@ -3258,15 +3590,13 @@ public class PolicyBroleApi {
      * @param attrFilter List of attribute filters to return in the payload: listable, curatable, quickInfo. (optional)
      * @param indexFrom Starting row index in result set. 0 is the first. (optional, default to 0)
      * @param size Number of results to return, used for paging. (optional, default to 10)
-     * @param showUnfilteredCt Show unfiltered count. (optional, default to false)
-     * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the role                               criteria nodes and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call getAuthorizedRolesEffectivenessAsync(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ApiCallback<Users> callback) throws ApiException {
+    public com.squareup.okhttp.Call getAuthorizedRolesEffectivenessAsync(Buroleusers body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, String q, String qMatch, final ApiCallback<Users> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -3287,7 +3617,7 @@ public class PolicyBroleApi {
             };
         }
 
-        com.squareup.okhttp.Call call = getAuthorizedRolesEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getAuthorizedRolesEffectivenessValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, q, qMatch, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<Users>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
@@ -3383,7 +3713,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of published business roles that auto-grant or auto-revoke one or more resources.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body list of attribute keys and values to use as search criteria (required)
      * @param size Number of results to return, used for paging. (optional, default to 0)
      * @param q Quick search filter, used to search across all listAttribute fields. (optional)
@@ -3403,7 +3733,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of published business roles that auto-grant or auto-revoke one or more resources.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body list of attribute keys and values to use as search criteria (required)
      * @param size Number of results to return, used for paging. (optional, default to 0)
      * @param q Quick search filter, used to search across all listAttribute fields. (optional)
@@ -3424,7 +3754,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of published business roles that auto-grant or auto-revoke one or more resources. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body list of attribute keys and values to use as search criteria (required)
      * @param size Number of results to return, used for paging. (optional, default to 0)
      * @param q Quick search filter, used to search across all listAttribute fields. (optional)
@@ -3461,6 +3791,131 @@ public class PolicyBroleApi {
 
         com.squareup.okhttp.Call call = getAutoRequestPoliciesValidateBeforeCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, autoGrant, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<Roles>(){}.getType();
+        apiClient.executeAsync(call, localVarReturnType, callback);
+        return call;
+    }
+    /**
+     * Build call for getBRAssignedUserCount
+     * @param ID The business role ID whose user count we are going to get. (required)
+     * @param progressListener Progress listener
+     * @param progressRequestListener Progress request listener
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public com.squareup.okhttp.Call getBRAssignedUserCountCall(Long ID, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        Object localVarPostBody = null;
+        
+        // create path and map variables
+        String localVarPath = "/policy/brole/{ID}/assignedCount"
+            .replaceAll("\\{" + "ID" + "\\}", apiClient.escapeString(ID.toString()));
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) localVarHeaderParams.put("Accept", localVarAccept);
+
+        final String[] localVarContentTypes = {
+            
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        if(progressListener != null) {
+            apiClient.getHttpClient().networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
+                @Override
+                public com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
+                    com.squareup.okhttp.Response originalResponse = chain.proceed(chain.request());
+                    return originalResponse.newBuilder()
+                    .body(new ProgressResponseBody(originalResponse.body(), progressListener))
+                    .build();
+                }
+            });
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return apiClient.buildCall(localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
+    }
+    
+    @SuppressWarnings("rawtypes")
+    private com.squareup.okhttp.Call getBRAssignedUserCountValidateBeforeCall(Long ID, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        // verify the required parameter 'ID' is set
+        if (ID == null) {
+            throw new ApiException("Missing the required parameter 'ID' when calling getBRAssignedUserCount(Async)");
+        }
+        
+        com.squareup.okhttp.Call call = getBRAssignedUserCountCall(ID, progressListener, progressRequestListener);
+        return call;
+
+        
+        
+        
+        
+    }
+
+    /**
+     * Get the assigned user count for a business role.
+     * The count is only returned if the business role is published and the business role detection is in a  completed state.&lt;br/&gt;Accepted Roles: * Auditor * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param ID The business role ID whose user count we are going to get. (required)
+     * @return Calculated
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public Calculated getBRAssignedUserCount(Long ID) throws ApiException {
+        ApiResponse<Calculated> resp = getBRAssignedUserCountWithHttpInfo(ID);
+        return resp.getData();
+    }
+
+    /**
+     * Get the assigned user count for a business role.
+     * The count is only returned if the business role is published and the business role detection is in a  completed state.&lt;br/&gt;Accepted Roles: * Auditor * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param ID The business role ID whose user count we are going to get. (required)
+     * @return ApiResponse&lt;Calculated&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<Calculated> getBRAssignedUserCountWithHttpInfo(Long ID) throws ApiException {
+        com.squareup.okhttp.Call call = getBRAssignedUserCountValidateBeforeCall(ID, null, null);
+        Type localVarReturnType = new TypeToken<Calculated>(){}.getType();
+        return apiClient.execute(call, localVarReturnType);
+    }
+
+    /**
+     * Get the assigned user count for a business role. (asynchronously)
+     * The count is only returned if the business role is published and the business role detection is in a  completed state.&lt;br/&gt;Accepted Roles: * Auditor * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param ID The business role ID whose user count we are going to get. (required)
+     * @param callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     */
+    public com.squareup.okhttp.Call getBRAssignedUserCountAsync(Long ID, final ApiCallback<Calculated> callback) throws ApiException {
+
+        ProgressResponseBody.ProgressListener progressListener = null;
+        ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
+
+        if (callback != null) {
+            progressListener = new ProgressResponseBody.ProgressListener() {
+                @Override
+                public void update(long bytesRead, long contentLength, boolean done) {
+                    callback.onDownloadProgress(bytesRead, contentLength, done);
+                }
+            };
+
+            progressRequestListener = new ProgressRequestBody.ProgressRequestListener() {
+                @Override
+                public void onRequestProgress(long bytesWritten, long contentLength, boolean done) {
+                    callback.onUploadProgress(bytesWritten, contentLength, done);
+                }
+            };
+        }
+
+        com.squareup.okhttp.Call call = getBRAssignedUserCountValidateBeforeCall(ID, progressListener, progressRequestListener);
+        Type localVarReturnType = new TypeToken<Calculated>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
     }
@@ -4793,12 +5248,13 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param stateFilter Filter the policies by their approval state. Valid values: DRAFT, REJECTED, PENDING_APPROVAL,  APPROVED, PUBLISHED, ARCHIVE, MINED (optional)
      * @param approvalPolicy Approval policy to filter on, if any. (optional)
+     * @param getAuthorizedItems Flag indicating whether to return information about authorized items. (optional, default to true)
      * @param progressListener Progress listener
      * @param progressRequestListener Progress request listener
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call getBusinessRolePoliciesCall(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call getBusinessRolePoliciesCall(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, Boolean getAuthorizedItems, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = body;
         
         // create path and map variables
@@ -4830,6 +5286,8 @@ public class PolicyBroleApi {
         localVarQueryParams.addAll(apiClient.parameterToPair("stateFilter", stateFilter));
         if (approvalPolicy != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("approvalPolicy", approvalPolicy));
+        if (getAuthorizedItems != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("getAuthorizedItems", getAuthorizedItems));
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
 
@@ -4864,13 +5322,13 @@ public class PolicyBroleApi {
     }
     
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call getBusinessRolePoliciesValidateBeforeCall(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call getBusinessRolePoliciesValidateBeforeCall(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, Boolean getAuthorizedItems, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         // verify the required parameter 'body' is set
         if (body == null) {
             throw new ApiException("Missing the required parameter 'body' when calling getBusinessRolePolicies(Async)");
         }
         
-        com.squareup.okhttp.Call call = getBusinessRolePoliciesCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getBusinessRolePoliciesCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, getAuthorizedItems, progressListener, progressRequestListener);
         return call;
 
         
@@ -4895,11 +5353,12 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param stateFilter Filter the policies by their approval state. Valid values: DRAFT, REJECTED, PENDING_APPROVAL,  APPROVED, PUBLISHED, ARCHIVE, MINED (optional)
      * @param approvalPolicy Approval policy to filter on, if any. (optional)
+     * @param getAuthorizedItems Flag indicating whether to return information about authorized items. (optional, default to true)
      * @return Roles
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public Roles getBusinessRolePolicies(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy) throws ApiException {
-        ApiResponse<Roles> resp = getBusinessRolePoliciesWithHttpInfo(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy);
+    public Roles getBusinessRolePolicies(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, Boolean getAuthorizedItems) throws ApiException {
+        ApiResponse<Roles> resp = getBusinessRolePoliciesWithHttpInfo(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, getAuthorizedItems);
         return resp.getData();
     }
 
@@ -4919,11 +5378,12 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param stateFilter Filter the policies by their approval state. Valid values: DRAFT, REJECTED, PENDING_APPROVAL,  APPROVED, PUBLISHED, ARCHIVE, MINED (optional)
      * @param approvalPolicy Approval policy to filter on, if any. (optional)
+     * @param getAuthorizedItems Flag indicating whether to return information about authorized items. (optional, default to true)
      * @return ApiResponse&lt;Roles&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Roles> getBusinessRolePoliciesWithHttpInfo(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy) throws ApiException {
-        com.squareup.okhttp.Call call = getBusinessRolePoliciesValidateBeforeCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, null, null);
+    public ApiResponse<Roles> getBusinessRolePoliciesWithHttpInfo(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, Boolean getAuthorizedItems) throws ApiException {
+        com.squareup.okhttp.Call call = getBusinessRolePoliciesValidateBeforeCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, getAuthorizedItems, null, null);
         Type localVarReturnType = new TypeToken<Roles>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
@@ -4944,11 +5404,12 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param stateFilter Filter the policies by their approval state. Valid values: DRAFT, REJECTED, PENDING_APPROVAL,  APPROVED, PUBLISHED, ARCHIVE, MINED (optional)
      * @param approvalPolicy Approval policy to filter on, if any. (optional)
+     * @param getAuthorizedItems Flag indicating whether to return information about authorized items. (optional, default to true)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call getBusinessRolePoliciesAsync(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, final ApiCallback<Roles> callback) throws ApiException {
+    public com.squareup.okhttp.Call getBusinessRolePoliciesAsync(SearchCriteria body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, Boolean getAuthorizedItems, final ApiCallback<Roles> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -4969,7 +5430,7 @@ public class PolicyBroleApi {
             };
         }
 
-        com.squareup.okhttp.Call call = getBusinessRolePoliciesValidateBeforeCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getBusinessRolePoliciesValidateBeforeCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, getAuthorizedItems, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<Roles>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
@@ -4989,12 +5450,13 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param stateFilter Filter the policies by their approval state. Valid values: DRAFT, REJECTED, PENDING_APPROVAL,  APPROVED, PUBLISHED, ARCHIVE, MINED (optional)
      * @param approvalPolicy Approval policy to filter on, if any. (optional)
+     * @param getAuthorizedItems Flag indicating whether to return information about authorized items. (optional, default to true)
      * @param progressListener Progress listener
      * @param progressRequestListener Progress request listener
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call getBusinessRolePoliciesByIdCall(EntityCategorySearch body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call getBusinessRolePoliciesByIdCall(EntityCategorySearch body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, Boolean getAuthorizedItems, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = body;
         
         // create path and map variables
@@ -5026,6 +5488,8 @@ public class PolicyBroleApi {
         localVarQueryParams.addAll(apiClient.parameterToPair("stateFilter", stateFilter));
         if (approvalPolicy != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("approvalPolicy", approvalPolicy));
+        if (getAuthorizedItems != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("getAuthorizedItems", getAuthorizedItems));
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
 
@@ -5060,13 +5524,13 @@ public class PolicyBroleApi {
     }
     
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call getBusinessRolePoliciesByIdValidateBeforeCall(EntityCategorySearch body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call getBusinessRolePoliciesByIdValidateBeforeCall(EntityCategorySearch body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, Boolean getAuthorizedItems, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         // verify the required parameter 'body' is set
         if (body == null) {
             throw new ApiException("Missing the required parameter 'body' when calling getBusinessRolePoliciesById(Async)");
         }
         
-        com.squareup.okhttp.Call call = getBusinessRolePoliciesByIdCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getBusinessRolePoliciesByIdCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, getAuthorizedItems, progressListener, progressRequestListener);
         return call;
 
         
@@ -5077,7 +5541,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of business roles filtered by id list,if provided.
-     * Also include the information about business role&lt;br/&gt;Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Also include the information about business role&lt;br/&gt;Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Filter the policies by values of specific fields (required)
      * @param size Number of results to return, used for paging. (optional, default to 0)
      * @param q Quick search filter, used to search across all listAttribute fields. (optional)
@@ -5091,17 +5555,18 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param stateFilter Filter the policies by their approval state. Valid values: DRAFT, REJECTED, PENDING_APPROVAL,  APPROVED, PUBLISHED, ARCHIVE, MINED (optional)
      * @param approvalPolicy Approval policy to filter on, if any. (optional)
+     * @param getAuthorizedItems Flag indicating whether to return information about authorized items. (optional, default to true)
      * @return Roles
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public Roles getBusinessRolePoliciesById(EntityCategorySearch body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy) throws ApiException {
-        ApiResponse<Roles> resp = getBusinessRolePoliciesByIdWithHttpInfo(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy);
+    public Roles getBusinessRolePoliciesById(EntityCategorySearch body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, Boolean getAuthorizedItems) throws ApiException {
+        ApiResponse<Roles> resp = getBusinessRolePoliciesByIdWithHttpInfo(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, getAuthorizedItems);
         return resp.getData();
     }
 
     /**
      * Return list of business roles filtered by id list,if provided.
-     * Also include the information about business role&lt;br/&gt;Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Also include the information about business role&lt;br/&gt;Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Filter the policies by values of specific fields (required)
      * @param size Number of results to return, used for paging. (optional, default to 0)
      * @param q Quick search filter, used to search across all listAttribute fields. (optional)
@@ -5115,18 +5580,19 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param stateFilter Filter the policies by their approval state. Valid values: DRAFT, REJECTED, PENDING_APPROVAL,  APPROVED, PUBLISHED, ARCHIVE, MINED (optional)
      * @param approvalPolicy Approval policy to filter on, if any. (optional)
+     * @param getAuthorizedItems Flag indicating whether to return information about authorized items. (optional, default to true)
      * @return ApiResponse&lt;Roles&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Roles> getBusinessRolePoliciesByIdWithHttpInfo(EntityCategorySearch body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy) throws ApiException {
-        com.squareup.okhttp.Call call = getBusinessRolePoliciesByIdValidateBeforeCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, null, null);
+    public ApiResponse<Roles> getBusinessRolePoliciesByIdWithHttpInfo(EntityCategorySearch body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, Boolean getAuthorizedItems) throws ApiException {
+        com.squareup.okhttp.Call call = getBusinessRolePoliciesByIdValidateBeforeCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, getAuthorizedItems, null, null);
         Type localVarReturnType = new TypeToken<Roles>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
     /**
      * Return list of business roles filtered by id list,if provided. (asynchronously)
-     * Also include the information about business role&lt;br/&gt;Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Also include the information about business role&lt;br/&gt;Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Filter the policies by values of specific fields (required)
      * @param size Number of results to return, used for paging. (optional, default to 0)
      * @param q Quick search filter, used to search across all listAttribute fields. (optional)
@@ -5140,11 +5606,12 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param stateFilter Filter the policies by their approval state. Valid values: DRAFT, REJECTED, PENDING_APPROVAL,  APPROVED, PUBLISHED, ARCHIVE, MINED (optional)
      * @param approvalPolicy Approval policy to filter on, if any. (optional)
+     * @param getAuthorizedItems Flag indicating whether to return information about authorized items. (optional, default to true)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call getBusinessRolePoliciesByIdAsync(EntityCategorySearch body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, final ApiCallback<Roles> callback) throws ApiException {
+    public com.squareup.okhttp.Call getBusinessRolePoliciesByIdAsync(EntityCategorySearch body, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, List<String> listAttr, List<String> attrFilter, String qMatch, Boolean typeAheadSearch, Boolean showCt, String stateFilter, Long approvalPolicy, Boolean getAuthorizedItems, final ApiCallback<Roles> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -5165,7 +5632,7 @@ public class PolicyBroleApi {
             };
         }
 
-        com.squareup.okhttp.Call call = getBusinessRolePoliciesByIdValidateBeforeCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getBusinessRolePoliciesByIdValidateBeforeCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, typeAheadSearch, showCt, stateFilter, approvalPolicy, getAuthorizedItems, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<Roles>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
@@ -5949,8 +6416,7 @@ public class PolicyBroleApi {
     }
     /**
      * Build call for getMatchingUsers
-     * @param body Advanced search criteria for users.  This will be ANDed with the membership criteria of the business role and
-                                   the quick search filter. (required)
+     * @param body Advanced search criteria for users.  This will be ANDed with the membership criteria of the business role and (required)
      * @param ID The ID of the business role. (required)
      * @param sortBy The attribute to sort by. (optional)
      * @param sortOrder Sort order. Valid values: ASC or DESC (optional, default to ASC)
@@ -5962,12 +6428,13 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the                                    membership criteria of the business role and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
+     * @param assigned Return only members that are assigned to the role via access request                                    the quick search filter. (optional, default to false)
      * @param progressListener Progress listener
      * @param progressRequestListener Progress request listener
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call getMatchingUsersCall(SearchCriteria body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call getMatchingUsersCall(SearchCriteria body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, Boolean assigned, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = body;
         
         // create path and map variables
@@ -5996,6 +6463,8 @@ public class PolicyBroleApi {
         localVarQueryParams.addAll(apiClient.parameterToPair("q", q));
         if (qMatch != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("qMatch", qMatch));
+        if (assigned != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("assigned", assigned));
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
 
@@ -6030,7 +6499,7 @@ public class PolicyBroleApi {
     }
     
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call getMatchingUsersValidateBeforeCall(SearchCriteria body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call getMatchingUsersValidateBeforeCall(SearchCriteria body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, Boolean assigned, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         // verify the required parameter 'body' is set
         if (body == null) {
             throw new ApiException("Missing the required parameter 'body' when calling getMatchingUsers(Async)");
@@ -6040,7 +6509,7 @@ public class PolicyBroleApi {
             throw new ApiException("Missing the required parameter 'ID' when calling getMatchingUsers(Async)");
         }
         
-        com.squareup.okhttp.Call call = getMatchingUsersCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getMatchingUsersCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, assigned, progressListener, progressRequestListener);
         return call;
 
         
@@ -6051,9 +6520,8 @@ public class PolicyBroleApi {
 
     /**
      * Return list of users that match the membership criteria for the specified business role.
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Owner * Historical Reviewer * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner * Separation of Duties Administrator 
-     * @param body Advanced search criteria for users.  This will be ANDed with the membership criteria of the business role and
-                                   the quick search filter. (required)
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Owner * Historical Reviewer * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner 
+     * @param body Advanced search criteria for users.  This will be ANDed with the membership criteria of the business role and (required)
      * @param ID The ID of the business role. (required)
      * @param sortBy The attribute to sort by. (optional)
      * @param sortOrder Sort order. Valid values: ASC or DESC (optional, default to ASC)
@@ -6065,19 +6533,19 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the                                    membership criteria of the business role and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
+     * @param assigned Return only members that are assigned to the role via access request                                    the quick search filter. (optional, default to false)
      * @return Users
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public Users getMatchingUsers(SearchCriteria body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch) throws ApiException {
-        ApiResponse<Users> resp = getMatchingUsersWithHttpInfo(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch);
+    public Users getMatchingUsers(SearchCriteria body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, Boolean assigned) throws ApiException {
+        ApiResponse<Users> resp = getMatchingUsersWithHttpInfo(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, assigned);
         return resp.getData();
     }
 
     /**
      * Return list of users that match the membership criteria for the specified business role.
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Owner * Historical Reviewer * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner * Separation of Duties Administrator 
-     * @param body Advanced search criteria for users.  This will be ANDed with the membership criteria of the business role and
-                                   the quick search filter. (required)
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Owner * Historical Reviewer * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner 
+     * @param body Advanced search criteria for users.  This will be ANDed with the membership criteria of the business role and (required)
      * @param ID The ID of the business role. (required)
      * @param sortBy The attribute to sort by. (optional)
      * @param sortOrder Sort order. Valid values: ASC or DESC (optional, default to ASC)
@@ -6089,20 +6557,20 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the                                    membership criteria of the business role and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
+     * @param assigned Return only members that are assigned to the role via access request                                    the quick search filter. (optional, default to false)
      * @return ApiResponse&lt;Users&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Users> getMatchingUsersWithHttpInfo(SearchCriteria body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch) throws ApiException {
-        com.squareup.okhttp.Call call = getMatchingUsersValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, null, null);
+    public ApiResponse<Users> getMatchingUsersWithHttpInfo(SearchCriteria body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, Boolean assigned) throws ApiException {
+        com.squareup.okhttp.Call call = getMatchingUsersValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, assigned, null, null);
         Type localVarReturnType = new TypeToken<Users>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
     /**
      * Return list of users that match the membership criteria for the specified business role. (asynchronously)
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Owner * Historical Reviewer * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner * Separation of Duties Administrator 
-     * @param body Advanced search criteria for users.  This will be ANDed with the membership criteria of the business role and
-                                   the quick search filter. (required)
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Escalation Reviewer * Historical Review Owner * Historical Reviewer * Review Administrator * Review Auditor * Review Owner * Reviewer * Role owner 
+     * @param body Advanced search criteria for users.  This will be ANDed with the membership criteria of the business role and (required)
      * @param ID The ID of the business role. (required)
      * @param sortBy The attribute to sort by. (optional)
      * @param sortOrder Sort order. Valid values: ASC or DESC (optional, default to ASC)
@@ -6114,11 +6582,12 @@ public class PolicyBroleApi {
      * @param showCt Show total result set count. (optional, default to false)
      * @param q Quick search filter, used to search across all quick search fields. This criteria will be ANDed with the                                    membership criteria of the business role and the advanced search criteria, if any. (optional)
      * @param qMatch Match mode. Valid values:   ANY, START or EXACT (optional)
+     * @param assigned Return only members that are assigned to the role via access request                                    the quick search filter. (optional, default to false)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call getMatchingUsersAsync(SearchCriteria body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, final ApiCallback<Users> callback) throws ApiException {
+    public com.squareup.okhttp.Call getMatchingUsersAsync(SearchCriteria body, Long ID, String sortBy, String sortOrder, List<String> listAttr, List<String> attrFilter, Integer indexFrom, Integer size, Boolean showUnfilteredCt, Boolean showCt, String q, String qMatch, Boolean assigned, final ApiCallback<Users> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -6139,7 +6608,7 @@ public class PolicyBroleApi {
             };
         }
 
-        com.squareup.okhttp.Call call = getMatchingUsersValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = getMatchingUsersValidateBeforeCall(body, ID, sortBy, sortOrder, listAttr, attrFilter, indexFrom, size, showUnfilteredCt, showCt, q, qMatch, assigned, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<Users>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
@@ -6245,7 +6714,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of users that match the membership criteria for a business role.
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -6269,7 +6738,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of users that match the membership criteria for a business role.
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -6294,7 +6763,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of users that match the membership criteria for a business role. (asynchronously)
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -6439,7 +6908,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of applications for users that match the membership criteria for a business role.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -6463,7 +6932,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of applications for users that match the membership criteria for a business role.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -6488,7 +6957,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of applications for users that match the membership criteria for a business role. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -6633,7 +7102,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of permissions for users that match the membership criteria for a business role.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -6657,7 +7126,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of permissions for users that match the membership criteria for a business role.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -6682,7 +7151,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of permissions for users that match the membership criteria for a business role. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -6827,7 +7296,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of technical roles for users that match the membership criteria for a business role.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -6851,7 +7320,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of technical roles for users that match the membership criteria for a business role.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -6876,7 +7345,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of technical roles for users that match the membership criteria for a business role. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body Advanced search criteria for users as well as business role criteria nodes that we want to match against. These
                               criteria will be ANDed with each other as well as the quick search filter, if any. (required)
      * @param sortBy The attribute to sort by. (optional)
@@ -7267,7 +7736,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of business roles pending approval of the logged in user.
-     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body list of attribute keys and values to use as search criteria (required)
      * @param size Number of results to return, used for paging. (optional, default to 0)
      * @param q Quick search filter, used to search across all listAttribute fields. (optional)
@@ -7287,7 +7756,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of business roles pending approval of the logged in user.
-     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body list of attribute keys and values to use as search criteria (required)
      * @param size Number of results to return, used for paging. (optional, default to 0)
      * @param q Quick search filter, used to search across all listAttribute fields. (optional)
@@ -7308,7 +7777,7 @@ public class PolicyBroleApi {
 
     /**
      * Return list of business roles pending approval of the logged in user. (asynchronously)
-     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Approver * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body list of attribute keys and values to use as search criteria (required)
      * @param size Number of results to return, used for paging. (optional, default to 0)
      * @param q Quick search filter, used to search across all listAttribute fields. (optional)
@@ -7344,6 +7813,161 @@ public class PolicyBroleApi {
         }
 
         com.squareup.okhttp.Call call = getPendingApprovalsValidateBeforeCall(body, size, q, sortBy, sortOrder, indexFrom, listAttr, attrFilter, qMatch, progressListener, progressRequestListener);
+        Type localVarReturnType = new TypeToken<Roles>(){}.getType();
+        apiClient.executeAsync(call, localVarReturnType, callback);
+        return call;
+    }
+    /**
+     * Build call for getReferencesForList
+     * @param ID - The role id (required)
+     * @param size - Number of results to return, used for paging. (optional, default to 0)
+     * @param q - Quick search filter, used to search across all listAttribute fields. (optional)
+     * @param sortBy - The attribute to sort by. (optional)
+     * @param sortOrder - Sort order. Valid values: ASC or DESC (optional, default to ASC)
+     * @param indexFrom - Starting row index in result set. 0 is the first, used for paging. (optional, default to 0)
+     * @param progressListener Progress listener
+     * @param progressRequestListener Progress request listener
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public com.squareup.okhttp.Call getReferencesForListCall(Long ID, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        Object localVarPostBody = null;
+        
+        // create path and map variables
+        String localVarPath = "/policy/brole/{ID}/policy/references"
+            .replaceAll("\\{" + "ID" + "\\}", apiClient.escapeString(ID.toString()));
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+        if (size != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("size", size));
+        if (q != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("q", q));
+        if (sortBy != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("sortBy", sortBy));
+        if (sortOrder != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("sortOrder", sortOrder));
+        if (indexFrom != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("indexFrom", indexFrom));
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) localVarHeaderParams.put("Accept", localVarAccept);
+
+        final String[] localVarContentTypes = {
+            
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        if(progressListener != null) {
+            apiClient.getHttpClient().networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
+                @Override
+                public com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
+                    com.squareup.okhttp.Response originalResponse = chain.proceed(chain.request());
+                    return originalResponse.newBuilder()
+                    .body(new ProgressResponseBody(originalResponse.body(), progressListener))
+                    .build();
+                }
+            });
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return apiClient.buildCall(localVarPath, "GET", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
+    }
+    
+    @SuppressWarnings("rawtypes")
+    private com.squareup.okhttp.Call getReferencesForListValidateBeforeCall(Long ID, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        // verify the required parameter 'ID' is set
+        if (ID == null) {
+            throw new ApiException("Missing the required parameter 'ID' when calling getReferencesForList(Async)");
+        }
+        
+        com.squareup.okhttp.Call call = getReferencesForListCall(ID, size, q, sortBy, sortOrder, indexFrom, progressListener, progressRequestListener);
+        return call;
+
+        
+        
+        
+        
+    }
+
+    /**
+     * Get the policy references for the given business role.
+     * Accepted Roles: * Auditor * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param ID - The role id (required)
+     * @param size - Number of results to return, used for paging. (optional, default to 0)
+     * @param q - Quick search filter, used to search across all listAttribute fields. (optional)
+     * @param sortBy - The attribute to sort by. (optional)
+     * @param sortOrder - Sort order. Valid values: ASC or DESC (optional, default to ASC)
+     * @param indexFrom - Starting row index in result set. 0 is the first, used for paging. (optional, default to 0)
+     * @return Roles
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public Roles getReferencesForList(Long ID, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom) throws ApiException {
+        ApiResponse<Roles> resp = getReferencesForListWithHttpInfo(ID, size, q, sortBy, sortOrder, indexFrom);
+        return resp.getData();
+    }
+
+    /**
+     * Get the policy references for the given business role.
+     * Accepted Roles: * Auditor * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param ID - The role id (required)
+     * @param size - Number of results to return, used for paging. (optional, default to 0)
+     * @param q - Quick search filter, used to search across all listAttribute fields. (optional)
+     * @param sortBy - The attribute to sort by. (optional)
+     * @param sortOrder - Sort order. Valid values: ASC or DESC (optional, default to ASC)
+     * @param indexFrom - Starting row index in result set. 0 is the first, used for paging. (optional, default to 0)
+     * @return ApiResponse&lt;Roles&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<Roles> getReferencesForListWithHttpInfo(Long ID, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom) throws ApiException {
+        com.squareup.okhttp.Call call = getReferencesForListValidateBeforeCall(ID, size, q, sortBy, sortOrder, indexFrom, null, null);
+        Type localVarReturnType = new TypeToken<Roles>(){}.getType();
+        return apiClient.execute(call, localVarReturnType);
+    }
+
+    /**
+     * Get the policy references for the given business role. (asynchronously)
+     * Accepted Roles: * Auditor * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param ID - The role id (required)
+     * @param size - Number of results to return, used for paging. (optional, default to 0)
+     * @param q - Quick search filter, used to search across all listAttribute fields. (optional)
+     * @param sortBy - The attribute to sort by. (optional)
+     * @param sortOrder - Sort order. Valid values: ASC or DESC (optional, default to ASC)
+     * @param indexFrom - Starting row index in result set. 0 is the first, used for paging. (optional, default to 0)
+     * @param callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     */
+    public com.squareup.okhttp.Call getReferencesForListAsync(Long ID, Integer size, String q, String sortBy, String sortOrder, Integer indexFrom, final ApiCallback<Roles> callback) throws ApiException {
+
+        ProgressResponseBody.ProgressListener progressListener = null;
+        ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
+
+        if (callback != null) {
+            progressListener = new ProgressResponseBody.ProgressListener() {
+                @Override
+                public void update(long bytesRead, long contentLength, boolean done) {
+                    callback.onDownloadProgress(bytesRead, contentLength, done);
+                }
+            };
+
+            progressRequestListener = new ProgressRequestBody.ProgressRequestListener() {
+                @Override
+                public void onRequestProgress(long bytesWritten, long contentLength, boolean done) {
+                    callback.onUploadProgress(bytesWritten, contentLength, done);
+                }
+            };
+        }
+
+        com.squareup.okhttp.Call call = getReferencesForListValidateBeforeCall(ID, size, q, sortBy, sortOrder, indexFrom, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<Roles>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
@@ -7727,7 +8351,7 @@ public class PolicyBroleApi {
 
     /**
      * Perform an import preview which will attempt to resolve objects and object references.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param uploadedInputStream  (required)
      * @param refs the import refs (optional, default to false)
      * @param reportOnly the report only (optional, default to false)
@@ -7741,7 +8365,7 @@ public class PolicyBroleApi {
 
     /**
      * Perform an import preview which will attempt to resolve objects and object references.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param uploadedInputStream  (required)
      * @param refs the import refs (optional, default to false)
      * @param reportOnly the report only (optional, default to false)
@@ -7756,7 +8380,7 @@ public class PolicyBroleApi {
 
     /**
      * Perform an import preview which will attempt to resolve objects and object references. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param uploadedInputStream  (required)
      * @param refs the import refs (optional, default to false)
      * @param reportOnly the report only (optional, default to false)
@@ -7859,7 +8483,7 @@ public class PolicyBroleApi {
 
     /**
      * Perform an import preview which will attempt to resolve objects and object references.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param uploadedInputStream  (required)
      * @return Response
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -7871,7 +8495,7 @@ public class PolicyBroleApi {
 
     /**
      * Perform an import preview which will attempt to resolve objects and object references.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param uploadedInputStream  (required)
      * @return ApiResponse&lt;Response&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -7884,7 +8508,7 @@ public class PolicyBroleApi {
 
     /**
      * Perform an import preview which will attempt to resolve objects and object references. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param uploadedInputStream  (required)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
@@ -7988,7 +8612,7 @@ public class PolicyBroleApi {
 
     /**
      * Resolve Applications in the import document
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param uploadedInputStream  (required)
      * @param build the build application list (optional, default to false)
      * @return Response
@@ -8001,7 +8625,7 @@ public class PolicyBroleApi {
 
     /**
      * Resolve Applications in the import document
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param uploadedInputStream  (required)
      * @param build the build application list (optional, default to false)
      * @return ApiResponse&lt;Response&gt;
@@ -8015,7 +8639,7 @@ public class PolicyBroleApi {
 
     /**
      * Resolve Applications in the import document (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param uploadedInputStream  (required)
      * @param build the build application list (optional, default to false)
      * @param callback The callback to be executed when the API call finishes
@@ -8261,7 +8885,7 @@ public class PolicyBroleApi {
 
     /**
      * Perform a query of the user catalog, mining values of the specified attributes.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The mining attribute data and occurrence limit (required)
      * @param size - Number of results to return, used for paging. (optional, default to 0)
      * @param sortBy - The attribute to sort by. (optional)
@@ -8280,7 +8904,7 @@ public class PolicyBroleApi {
 
     /**
      * Perform a query of the user catalog, mining values of the specified attributes.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The mining attribute data and occurrence limit (required)
      * @param size - Number of results to return, used for paging. (optional, default to 0)
      * @param sortBy - The attribute to sort by. (optional)
@@ -8300,7 +8924,7 @@ public class PolicyBroleApi {
 
     /**
      * Perform a query of the user catalog, mining values of the specified attributes. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The mining attribute data and occurrence limit (required)
      * @param size - Number of results to return, used for paging. (optional, default to 0)
      * @param sortBy - The attribute to sort by. (optional)
@@ -8531,7 +9155,7 @@ public class PolicyBroleApi {
 
     /**
      * Publish, submit for approval or promote the given business roles
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The business role managers to update. (required)
      * @return Burole
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -8543,7 +9167,7 @@ public class PolicyBroleApi {
 
     /**
      * Publish, submit for approval or promote the given business roles
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The business role managers to update. (required)
      * @return ApiResponse&lt;Burole&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -8556,7 +9180,7 @@ public class PolicyBroleApi {
 
     /**
      * Publish, submit for approval or promote the given business roles (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The business role managers to update. (required)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
@@ -8655,7 +9279,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role approval policy.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The business role managers to update. (required)
      * @return Response
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -8667,7 +9291,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role approval policy.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The business role managers to update. (required)
      * @return ApiResponse&lt;Response&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -8680,7 +9304,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role approval policy. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The business role managers to update. (required)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
@@ -8852,6 +9476,130 @@ public class PolicyBroleApi {
         return call;
     }
     /**
+     * Build call for setAuthorizationRole
+     * @param body - The business roles to update and authorization role flag. (required)
+     * @param progressListener Progress listener
+     * @param progressRequestListener Progress request listener
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public com.squareup.okhttp.Call setAuthorizationRoleCall(Auths body, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        Object localVarPostBody = body;
+        
+        // create path and map variables
+        String localVarPath = "/policy/brole/authorizationrole";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) localVarHeaderParams.put("Accept", localVarAccept);
+
+        final String[] localVarContentTypes = {
+            "*/*"
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        if(progressListener != null) {
+            apiClient.getHttpClient().networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
+                @Override
+                public com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
+                    com.squareup.okhttp.Response originalResponse = chain.proceed(chain.request());
+                    return originalResponse.newBuilder()
+                    .body(new ProgressResponseBody(originalResponse.body(), progressListener))
+                    .build();
+                }
+            });
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return apiClient.buildCall(localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
+    }
+    
+    @SuppressWarnings("rawtypes")
+    private com.squareup.okhttp.Call setAuthorizationRoleValidateBeforeCall(Auths body, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        // verify the required parameter 'body' is set
+        if (body == null) {
+            throw new ApiException("Missing the required parameter 'body' when calling setAuthorizationRole(Async)");
+        }
+        
+        com.squareup.okhttp.Call call = setAuthorizationRoleCall(body, progressListener, progressRequestListener);
+        return call;
+
+        
+        
+        
+        
+    }
+
+    /**
+     * Set the business role authorization role flag.
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param body - The business roles to update and authorization role flag. (required)
+     * @return Response
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public Response setAuthorizationRole(Auths body) throws ApiException {
+        ApiResponse<Response> resp = setAuthorizationRoleWithHttpInfo(body);
+        return resp.getData();
+    }
+
+    /**
+     * Set the business role authorization role flag.
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param body - The business roles to update and authorization role flag. (required)
+     * @return ApiResponse&lt;Response&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<Response> setAuthorizationRoleWithHttpInfo(Auths body) throws ApiException {
+        com.squareup.okhttp.Call call = setAuthorizationRoleValidateBeforeCall(body, null, null);
+        Type localVarReturnType = new TypeToken<Response>(){}.getType();
+        return apiClient.execute(call, localVarReturnType);
+    }
+
+    /**
+     * Set the business role authorization role flag. (asynchronously)
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param body - The business roles to update and authorization role flag. (required)
+     * @param callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     */
+    public com.squareup.okhttp.Call setAuthorizationRoleAsync(Auths body, final ApiCallback<Response> callback) throws ApiException {
+
+        ProgressResponseBody.ProgressListener progressListener = null;
+        ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
+
+        if (callback != null) {
+            progressListener = new ProgressResponseBody.ProgressListener() {
+                @Override
+                public void update(long bytesRead, long contentLength, boolean done) {
+                    callback.onDownloadProgress(bytesRead, contentLength, done);
+                }
+            };
+
+            progressRequestListener = new ProgressRequestBody.ProgressRequestListener() {
+                @Override
+                public void onRequestProgress(long bytesWritten, long contentLength, boolean done) {
+                    callback.onUploadProgress(bytesWritten, contentLength, done);
+                }
+            };
+        }
+
+        com.squareup.okhttp.Call call = setAuthorizationRoleValidateBeforeCall(body, progressListener, progressRequestListener);
+        Type localVarReturnType = new TypeToken<Response>(){}.getType();
+        apiClient.executeAsync(call, localVarReturnType, callback);
+        return call;
+    }
+    /**
      * Build call for setFulfiller
      * @param body The business role fulfiller. (required)
      * @param progressListener Progress listener
@@ -8918,7 +9666,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role fulfiller.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role fulfiller. (required)
      * @return Response
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -8930,7 +9678,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role fulfiller.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role fulfiller. (required)
      * @return ApiResponse&lt;Response&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -8943,7 +9691,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role fulfiller. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role fulfiller. (required)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
@@ -9042,7 +9790,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role managers.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role managers to update. (required)
      * @return Response
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -9054,7 +9802,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role managers.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role managers to update. (required)
      * @return ApiResponse&lt;Response&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -9067,7 +9815,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role managers. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role managers to update. (required)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
@@ -9166,7 +9914,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role owners.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role owners. (required)
      * @return Response
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -9178,7 +9926,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role owners.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role owners. (required)
      * @return ApiResponse&lt;Response&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -9191,7 +9939,7 @@ public class PolicyBroleApi {
 
     /**
      * Set the business role owners. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body The business role owners. (required)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
@@ -9219,6 +9967,130 @@ public class PolicyBroleApi {
         }
 
         com.squareup.okhttp.Call call = setOwnersValidateBeforeCall(body, progressListener, progressRequestListener);
+        Type localVarReturnType = new TypeToken<Response>(){}.getType();
+        apiClient.executeAsync(call, localVarReturnType, callback);
+        return call;
+    }
+    /**
+     * Build call for setRequestable
+     * @param body - The business roles to update and requestable role flag. (required)
+     * @param progressListener Progress listener
+     * @param progressRequestListener Progress request listener
+     * @return Call to execute
+     * @throws ApiException If fail to serialize the request body object
+     */
+    public com.squareup.okhttp.Call setRequestableCall(Auths body, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        Object localVarPostBody = body;
+        
+        // create path and map variables
+        String localVarPath = "/policy/brole/requestable";
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        List<Pair> localVarCollectionQueryParams = new ArrayList<Pair>();
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+            "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) localVarHeaderParams.put("Accept", localVarAccept);
+
+        final String[] localVarContentTypes = {
+            "*/*"
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+        if(progressListener != null) {
+            apiClient.getHttpClient().networkInterceptors().add(new com.squareup.okhttp.Interceptor() {
+                @Override
+                public com.squareup.okhttp.Response intercept(com.squareup.okhttp.Interceptor.Chain chain) throws IOException {
+                    com.squareup.okhttp.Response originalResponse = chain.proceed(chain.request());
+                    return originalResponse.newBuilder()
+                    .body(new ProgressResponseBody(originalResponse.body(), progressListener))
+                    .build();
+                }
+            });
+        }
+
+        String[] localVarAuthNames = new String[] {  };
+        return apiClient.buildCall(localVarPath, "POST", localVarQueryParams, localVarCollectionQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAuthNames, progressRequestListener);
+    }
+    
+    @SuppressWarnings("rawtypes")
+    private com.squareup.okhttp.Call setRequestableValidateBeforeCall(Auths body, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+        // verify the required parameter 'body' is set
+        if (body == null) {
+            throw new ApiException("Missing the required parameter 'body' when calling setRequestable(Async)");
+        }
+        
+        com.squareup.okhttp.Call call = setRequestableCall(body, progressListener, progressRequestListener);
+        return call;
+
+        
+        
+        
+        
+    }
+
+    /**
+     * Set or unset the business role requestable flag.
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param body - The business roles to update and requestable role flag. (required)
+     * @return Response
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public Response setRequestable(Auths body) throws ApiException {
+        ApiResponse<Response> resp = setRequestableWithHttpInfo(body);
+        return resp.getData();
+    }
+
+    /**
+     * Set or unset the business role requestable flag.
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param body - The business roles to update and requestable role flag. (required)
+     * @return ApiResponse&lt;Response&gt;
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public ApiResponse<Response> setRequestableWithHttpInfo(Auths body) throws ApiException {
+        com.squareup.okhttp.Call call = setRequestableValidateBeforeCall(body, null, null);
+        Type localVarReturnType = new TypeToken<Response>(){}.getType();
+        return apiClient.execute(call, localVarReturnType);
+    }
+
+    /**
+     * Set or unset the business role requestable flag. (asynchronously)
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
+     * @param body - The business roles to update and requestable role flag. (required)
+     * @param callback The callback to be executed when the API call finishes
+     * @return The request call
+     * @throws ApiException If fail to process the API call, e.g. serializing the request body object
+     */
+    public com.squareup.okhttp.Call setRequestableAsync(Auths body, final ApiCallback<Response> callback) throws ApiException {
+
+        ProgressResponseBody.ProgressListener progressListener = null;
+        ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
+
+        if (callback != null) {
+            progressListener = new ProgressResponseBody.ProgressListener() {
+                @Override
+                public void update(long bytesRead, long contentLength, boolean done) {
+                    callback.onDownloadProgress(bytesRead, contentLength, done);
+                }
+            };
+
+            progressRequestListener = new ProgressRequestBody.ProgressRequestListener() {
+                @Override
+                public void onRequestProgress(long bytesWritten, long contentLength, boolean done) {
+                    callback.onUploadProgress(bytesWritten, contentLength, done);
+                }
+            };
+        }
+
+        com.squareup.okhttp.Call call = setRequestableValidateBeforeCall(body, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<Response>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
@@ -9290,7 +10162,7 @@ public class PolicyBroleApi {
 
     /**
      * Start analysis of the given Business Roles
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The analysis request information (required)
      * @return Response
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -9302,7 +10174,7 @@ public class PolicyBroleApi {
 
     /**
      * Start analysis of the given Business Roles
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The analysis request information (required)
      * @return ApiResponse&lt;Response&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
@@ -9315,7 +10187,7 @@ public class PolicyBroleApi {
 
     /**
      * Start analysis of the given Business Roles (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The analysis request information (required)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
@@ -9554,7 +10426,7 @@ public class PolicyBroleApi {
 
     /**
      * Start downloading the analysis results as a CSV
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body -  The download request node (required)
      * @param id - The analysis id to download (required)
      * @param attrFilter List of attribute filters: listable, curatable, quickInfo. (optional)
@@ -9568,7 +10440,7 @@ public class PolicyBroleApi {
 
     /**
      * Start downloading the analysis results as a CSV
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body -  The download request node (required)
      * @param id - The analysis id to download (required)
      * @param attrFilter List of attribute filters: listable, curatable, quickInfo. (optional)
@@ -9583,7 +10455,7 @@ public class PolicyBroleApi {
 
     /**
      * Start downloading the analysis results as a CSV (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body -  The download request node (required)
      * @param id - The analysis id to download (required)
      * @param attrFilter List of attribute filters: listable, curatable, quickInfo. (optional)
@@ -9869,7 +10741,7 @@ public class PolicyBroleApi {
 
     /**
      * Start downloading the Business Roles
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The download request node (required)
      * @param refs - Flag to include owner references in export file (optional, default to false)
      * @param apps - Flag to export applications referenced by the business role (optional, default to false)
@@ -9888,7 +10760,7 @@ public class PolicyBroleApi {
 
     /**
      * Start downloading the Business Roles
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The download request node (required)
      * @param refs - Flag to include owner references in export file (optional, default to false)
      * @param apps - Flag to export applications referenced by the business role (optional, default to false)
@@ -9908,7 +10780,7 @@ public class PolicyBroleApi {
 
     /**
      * Start downloading the Business Roles (asynchronously)
-     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Auditor * Business Role Approver * Business Role Fulfiller * Business Role Manager * Business Role owner * Business Roles Administrator * Customer Administrator * Role owner 
      * @param body - The download request node (required)
      * @param refs - Flag to include owner references in export file (optional, default to false)
      * @param apps - Flag to export applications referenced by the business role (optional, default to false)
@@ -9952,12 +10824,14 @@ public class PolicyBroleApi {
      * @param resourceType Type of resource to start an inconsistency detection on. (optional)
      * @param autoGrant Flag indicating whether to start the detection for auto-grants (true) or auto-revokes (false) (optional, default to true)
      * @param prevMembWindowDays Previous member window days - used only for auto-revoke detections. (optional, default to 0)
+     * @param alternateAlgorithm Flag indicating whether to use the alternate detection algorithm. (optional)
+     * @param checkPotential Flag indicating whether to check for potential inconsistencies. (optional)
      * @param progressListener Progress listener
      * @param progressRequestListener Progress request listener
      * @return Call to execute
      * @throws ApiException If fail to serialize the request body object
      */
-    public com.squareup.okhttp.Call startInconsistencyDetectionCall(String resourceType, Boolean autoGrant, Integer prevMembWindowDays, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    public com.squareup.okhttp.Call startInconsistencyDetectionCall(String resourceType, Boolean autoGrant, Integer prevMembWindowDays, Boolean alternateAlgorithm, Boolean checkPotential, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         Object localVarPostBody = null;
         
         // create path and map variables
@@ -9971,6 +10845,10 @@ public class PolicyBroleApi {
         localVarQueryParams.addAll(apiClient.parameterToPair("autoGrant", autoGrant));
         if (prevMembWindowDays != null)
         localVarQueryParams.addAll(apiClient.parameterToPair("prevMembWindowDays", prevMembWindowDays));
+        if (alternateAlgorithm != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("alternateAlgorithm", alternateAlgorithm));
+        if (checkPotential != null)
+        localVarQueryParams.addAll(apiClient.parameterToPair("checkPotential", checkPotential));
 
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
 
@@ -10005,9 +10883,9 @@ public class PolicyBroleApi {
     }
     
     @SuppressWarnings("rawtypes")
-    private com.squareup.okhttp.Call startInconsistencyDetectionValidateBeforeCall(String resourceType, Boolean autoGrant, Integer prevMembWindowDays, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
+    private com.squareup.okhttp.Call startInconsistencyDetectionValidateBeforeCall(String resourceType, Boolean autoGrant, Integer prevMembWindowDays, Boolean alternateAlgorithm, Boolean checkPotential, final ProgressResponseBody.ProgressListener progressListener, final ProgressRequestBody.ProgressRequestListener progressRequestListener) throws ApiException {
         
-        com.squareup.okhttp.Call call = startInconsistencyDetectionCall(resourceType, autoGrant, prevMembWindowDays, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = startInconsistencyDetectionCall(resourceType, autoGrant, prevMembWindowDays, alternateAlgorithm, checkPotential, progressListener, progressRequestListener);
         return call;
 
         
@@ -10018,44 +10896,50 @@ public class PolicyBroleApi {
 
     /**
      * Start an inconsistency detection.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param resourceType Type of resource to start an inconsistency detection on. (optional)
      * @param autoGrant Flag indicating whether to start the detection for auto-grants (true) or auto-revokes (false) (optional, default to true)
      * @param prevMembWindowDays Previous member window days - used only for auto-revoke detections. (optional, default to 0)
+     * @param alternateAlgorithm Flag indicating whether to use the alternate detection algorithm. (optional)
+     * @param checkPotential Flag indicating whether to check for potential inconsistencies. (optional)
      * @return Status
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public Status startInconsistencyDetection(String resourceType, Boolean autoGrant, Integer prevMembWindowDays) throws ApiException {
-        ApiResponse<Status> resp = startInconsistencyDetectionWithHttpInfo(resourceType, autoGrant, prevMembWindowDays);
+    public Status startInconsistencyDetection(String resourceType, Boolean autoGrant, Integer prevMembWindowDays, Boolean alternateAlgorithm, Boolean checkPotential) throws ApiException {
+        ApiResponse<Status> resp = startInconsistencyDetectionWithHttpInfo(resourceType, autoGrant, prevMembWindowDays, alternateAlgorithm, checkPotential);
         return resp.getData();
     }
 
     /**
      * Start an inconsistency detection.
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param resourceType Type of resource to start an inconsistency detection on. (optional)
      * @param autoGrant Flag indicating whether to start the detection for auto-grants (true) or auto-revokes (false) (optional, default to true)
      * @param prevMembWindowDays Previous member window days - used only for auto-revoke detections. (optional, default to 0)
+     * @param alternateAlgorithm Flag indicating whether to use the alternate detection algorithm. (optional)
+     * @param checkPotential Flag indicating whether to check for potential inconsistencies. (optional)
      * @return ApiResponse&lt;Status&gt;
      * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
      */
-    public ApiResponse<Status> startInconsistencyDetectionWithHttpInfo(String resourceType, Boolean autoGrant, Integer prevMembWindowDays) throws ApiException {
-        com.squareup.okhttp.Call call = startInconsistencyDetectionValidateBeforeCall(resourceType, autoGrant, prevMembWindowDays, null, null);
+    public ApiResponse<Status> startInconsistencyDetectionWithHttpInfo(String resourceType, Boolean autoGrant, Integer prevMembWindowDays, Boolean alternateAlgorithm, Boolean checkPotential) throws ApiException {
+        com.squareup.okhttp.Call call = startInconsistencyDetectionValidateBeforeCall(resourceType, autoGrant, prevMembWindowDays, alternateAlgorithm, checkPotential, null, null);
         Type localVarReturnType = new TypeToken<Status>(){}.getType();
         return apiClient.execute(call, localVarReturnType);
     }
 
     /**
      * Start an inconsistency detection. (asynchronously)
-     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner * Separation of Duties Administrator 
+     * Accepted Roles: * Business Role Manager * Business Roles Administrator * Customer Administrator * Role owner 
      * @param resourceType Type of resource to start an inconsistency detection on. (optional)
      * @param autoGrant Flag indicating whether to start the detection for auto-grants (true) or auto-revokes (false) (optional, default to true)
      * @param prevMembWindowDays Previous member window days - used only for auto-revoke detections. (optional, default to 0)
+     * @param alternateAlgorithm Flag indicating whether to use the alternate detection algorithm. (optional)
+     * @param checkPotential Flag indicating whether to check for potential inconsistencies. (optional)
      * @param callback The callback to be executed when the API call finishes
      * @return The request call
      * @throws ApiException If fail to process the API call, e.g. serializing the request body object
      */
-    public com.squareup.okhttp.Call startInconsistencyDetectionAsync(String resourceType, Boolean autoGrant, Integer prevMembWindowDays, final ApiCallback<Status> callback) throws ApiException {
+    public com.squareup.okhttp.Call startInconsistencyDetectionAsync(String resourceType, Boolean autoGrant, Integer prevMembWindowDays, Boolean alternateAlgorithm, Boolean checkPotential, final ApiCallback<Status> callback) throws ApiException {
 
         ProgressResponseBody.ProgressListener progressListener = null;
         ProgressRequestBody.ProgressRequestListener progressRequestListener = null;
@@ -10076,7 +10960,7 @@ public class PolicyBroleApi {
             };
         }
 
-        com.squareup.okhttp.Call call = startInconsistencyDetectionValidateBeforeCall(resourceType, autoGrant, prevMembWindowDays, progressListener, progressRequestListener);
+        com.squareup.okhttp.Call call = startInconsistencyDetectionValidateBeforeCall(resourceType, autoGrant, prevMembWindowDays, alternateAlgorithm, checkPotential, progressListener, progressRequestListener);
         Type localVarReturnType = new TypeToken<Status>(){}.getType();
         apiClient.executeAsync(call, localVarReturnType, callback);
         return call;
