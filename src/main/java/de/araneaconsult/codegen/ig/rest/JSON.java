@@ -10,7 +10,7 @@
  * Do not edit the class manually.
  */
 
-package io.swagger.client;
+package de.araneaconsult.codegen.ig.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

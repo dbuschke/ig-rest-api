@@ -10,7 +10,7 @@
  * Do not edit the class manually.
  */
 
-package io.swagger.client;
+package de.araneaconsult.codegen.ig.rest;
 
 import com.squareup.okhttp.*;
 import okio.Buffer;

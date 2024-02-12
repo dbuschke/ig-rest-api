@@ -6,20 +6,20 @@ import de.araneaconsult.idm.oauth.OAuth;
 import de.araneaconsult.idm.oauth.ResponseException;
 import de.araneaconsult.idm.oauth.Token;
 import de.araneaconsult.ig.rest.Constant.Match;
-import io.swagger.client.ApiException;
-import io.swagger.client.Configuration;
-import io.swagger.client.JSON;
-import io.swagger.client.api.DataPermsApi;
-import io.swagger.client.api.PolicyBroleApi;
-import io.swagger.client.model.Britem;
-import io.swagger.client.model.Burole;
-import io.swagger.client.model.Criteria;
-import io.swagger.client.model.Permission;
-import io.swagger.client.model.Permissions;
-import io.swagger.client.model.Roles;
-import io.swagger.client.model.SearchCriteria;
-import io.swagger.client.model.UniquenessCriterion;
-import io.swagger.client.model.Britem.AutoRequestEnum;
+import de.araneaconsult.codegen.ig.rest.ApiException;
+import de.araneaconsult.codegen.ig.rest.Configuration;
+import de.araneaconsult.codegen.ig.rest.JSON;
+import de.araneaconsult.codegen.ig.rest.api.DataPermsApi;
+import de.araneaconsult.codegen.ig.rest.api.PolicyBroleApi;
+import de.araneaconsult.codegen.ig.rest.model.Britem;
+import de.araneaconsult.codegen.ig.rest.model.Burole;
+import de.araneaconsult.codegen.ig.rest.model.Criteria;
+import de.araneaconsult.codegen.ig.rest.model.Permission;
+import de.araneaconsult.codegen.ig.rest.model.Permissions;
+import de.araneaconsult.codegen.ig.rest.model.Roles;
+import de.araneaconsult.codegen.ig.rest.model.SearchCriteria;
+import de.araneaconsult.codegen.ig.rest.model.UniquenessCriterion;
+import de.araneaconsult.codegen.ig.rest.model.Britem.AutoRequestEnum;
 
 public class Test {
 
